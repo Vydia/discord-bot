@@ -15,7 +15,7 @@ type Props = {
 }
 
 const Home: FC<Props> = () => {
-  const inputRef = useRef(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
 
   return (
     <div>
@@ -32,7 +32,7 @@ const Home: FC<Props> = () => {
         <div className="max-w-xl w-screen">
           <form onSubmit={(event) => {
             event.preventDefault()
-            const url = inputRef.current.value
+            const url = inputRef.current && inputRef.current.value
             if (!url) return
 
             const videoId = getVideoId(url)

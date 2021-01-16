@@ -38,7 +38,7 @@ const Home: FC<Props> = () => {
             const videoId = getVideoId(url)
 
             if (videoId) {
-              Router.push(`/watch/${videoId}`)
+              Router.push(`/watch/${videoId}?hasControl=true`)
             } else {
               alert('Oops! Try entering a valid YouTube URL this time.')
             }

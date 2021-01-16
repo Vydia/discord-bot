@@ -14,16 +14,23 @@
     "test": "DEBUG_PRINT_LIMIT=10000 jest",
     "test:watch": "yarn test --watchAll"
   },
+  "husky": {
+    "hooks": {
+      "pre-push": "yarn lint:fix && yarn test && yarn build"
+    }
+  },
   "dependencies": {
     "autoprefixer": "^10.1.0",
     "discord.js": "^12.5.1",
     "firebase": "^8.2.3",
+    "load-script": "^1.0.0",
     "luxon": "^1.25.0",
     "next": "10.0.0",
     "postcss": "^8.2.1",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "react-firebase-hooks": "^2.2.0",
+    "react-toast-notifications": "^2.4.0",
     "tailwindcss": "^2.0.2"
   },
   "devDependencies": {
@@ -35,12 +42,14 @@
     "@types/luxon": "^1.25.0",
     "@types/node": "^14.14.20",
     "@types/react": "^17.0.0",
+    "@types/youtube": "^0.0.41",
     "@typescript-eslint/eslint-plugin": "^4.10.0",
     "@typescript-eslint/parser": "^4.10.0",
     "eslint": "^7.16.0",
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-react-hooks": "^4.2.0",
     "gray-matter": "^4.0.2",
+    "husky": "^4.3.8",
     "jest": "^26.6.3",
     "remark-highlight.js": "^6.0.0",
     "remark-html": "^13.0.1",

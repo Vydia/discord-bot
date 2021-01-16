@@ -11,6 +11,7 @@ class MyDocument extends Document {
     return (
       <Html lang="en">
         <Head />
+        <script src="https://www.youtube.com/iframe_api" />
         <body>
           <Main />
           <NextScript />

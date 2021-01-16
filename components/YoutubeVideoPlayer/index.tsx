@@ -14,13 +14,13 @@ const YouTubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
     return () => {
       setPlayer(null)
     }
-  }, [])
+  }, [player, setPlayer, internalPlayer])
 
   useEffect(() => {
     if(!player) return
     seek && seekTo(seek)
     play ? handlePlay() : handlePause()
-  }, [play, seek])
+  }, [play, seek, handlePause, handlePlay, seekTo, player])
 
   const internalPlayer = useCallback(() => new window['YT'].Player('youtube-video', {
     height: '390',
@@ -36,9 +36,9 @@ const YouTubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
     player.playVideo()
   }, [player])
 
-  const seekTo = (seekSeconds: number) => {
+  const seekTo = useCallback((seekSeconds: number) => {
     player.seekTo(seekSeconds, true)
-  }
+  }, [player])
 
   return <div id='youtube-video' />
 }

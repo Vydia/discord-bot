@@ -1,6 +1,4 @@
 import Head from 'next/head'
-import Link from 'next/link'
-import Img from 'next/image'
 import React, { FC } from 'react'
 
 type Props = {

@@ -44,9 +44,11 @@ module.exports = {
       'never'
     ],
     // suppress errors for missing 'import React' in files
+    'react-hooks/exhaustive-deps': 2,
     'react/react-in-jsx-scope': 'off',
     'react/prop-types': 'off',
-    '@typescript-eslint/no-var-requires': 'off'
+    '@typescript-eslint/no-var-requires': 'off',
+    '@typescript-eslint/no-unused-vars': [2, { varsIgnorePattern: '_.*' }],
   },
   'settings': {
     'react': {

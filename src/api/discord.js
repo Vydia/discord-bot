@@ -1,4 +1,5 @@
 const naclFactory = require("js-nacl")
+
 const PUBLIC_KEY = '<your public key here>'
 const PING_PONG = {"type": 1}
 const RESPONSE_TYPES =  {
@@ -14,11 +15,10 @@ const verifySignature = (event) => {
   authSig = event['params']['header']['x-signature-ed25519']
   authTs  = event['params']['header']['x-signature-timestamp']
 
-  message = encodeURI(authTs) + encodeURI(rawBody)
   naclFactory.instantiate((nacl) => {
     return nacl.crypto_sign_verify_detached(
       nacl.from_hex(authSig),
-      message,
+      `${encodeURI(authTs)}${encodeURI(rawBody)}`,
       nacl.from_hex(PUBLIC_KEY)
     )
   })

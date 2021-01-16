@@ -25,8 +25,7 @@ const verifySignature = (event) => {
 }
 
 const pingPong = (body) => {
-  if (body["type"] == 1) return true
-  return false
+  body["type"] == 1
 }
 
 const lambdaHandler = (event, context) => {

@@ -33,4 +33,4 @@ yarn-error.log*
 .vercel
 
 # firebase config
-/next.config.js
+.env.local

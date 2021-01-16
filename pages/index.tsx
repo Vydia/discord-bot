@@ -3,7 +3,7 @@ import React, { FC, useRef } from 'react'
 import Router from 'next/router'
 
 function getVideoId (url: string): string | void {
-  const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/
+  const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
   const match = url.match(regExp)
 
   if (match && match[2].length === 11) {

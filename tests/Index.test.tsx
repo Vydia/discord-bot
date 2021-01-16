@@ -9,7 +9,7 @@ const mockedRouterPush = Router.push as jest.Mock<any>
 
 describe('Index', () => {
   test('displays the heading', async () => {
-    let path: string = ''
+    let path = ''
 
     mockedRouterPush.mockImplementation((newPath: string) => {
       path = newPath

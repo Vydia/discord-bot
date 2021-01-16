@@ -1,5 +1,4 @@
 import { FC, useCallback, useEffect, useState } from "react"
-import load from 'load-script'
 
 type Props = {
   videoId: string,
@@ -10,12 +9,11 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
   const [player, setPlayer] = useState(null)
 
   useEffect(() => {
-    load('https://www.youtube.com/iframe_api')
     setPlayer(internalPlayer())
     return () => {}
   }, [])
 
-  const internalPlayer = useCallback(() => new YT.Player('youtube-video', {
+  const internalPlayer = useCallback(() => new window['YT'].Player('youtube-video', {
       height: '390',
       width: '640',
       videoId,

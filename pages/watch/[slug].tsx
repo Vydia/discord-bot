@@ -22,22 +22,20 @@ const Watch: FC<Props> = () => {
 
   return (
     <div>
-      <p>
-        {error && <strong>Error: {error}</strong>}
-        {loading && <span>Loading...</span>}
-        {!loading && (
-          <>
-            <button onClick={() => {
-              firebase.database().ref(`player/${query?.slug}`).set({
-                'playing': !!isPlaying
-              })
-            }}>
-              { isPlaying ? 'Pause' : 'Play' }
-            </button>
-            <p>{`Playing: ${!!isPlaying}`}</p>
-          </>
-        )}
-      </p>
+      {error && <strong>Error: {error}</strong>}
+      {loading && <span>Loading...</span>}
+      {!loading && (
+        <>
+          <button onClick={() => {
+            firebase.database().ref(`player/${query?.slug}`).set({
+              'playing': !!isPlaying
+            })
+          }}>
+            { isPlaying ? 'Pause' : 'Play' }
+          </button>
+          <p>{`Playing: ${!!isPlaying}`}</p>
+        </>
+      )}
     </div>
   )
 }

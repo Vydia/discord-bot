@@ -14,7 +14,6 @@ type Props = {
 
 const Watch: FC<Props> = () => {
   const { query } = useRouter()
-  const [playerState, setPlayerState] = useState(null)
   if (!query?.slug) return <div />
 
   return (

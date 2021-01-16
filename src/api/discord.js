@@ -24,10 +24,6 @@ const verifySignature = (event) => {
   })
 }
 
-const pingPong = (body) => {
-  body["type"] == 1
-}
-
 const lambdaHandler = (event, context) => {
   console.log(`event ${event}`)
 
@@ -39,7 +35,7 @@ const lambdaHandler = (event, context) => {
 
   const body = event['body-json']
 
-  if (pingPong(body)) {
+  if (body["type"] == 1) {
     return PING_PONG
   }
 

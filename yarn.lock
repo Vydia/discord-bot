@@ -59,6 +59,11 @@ event-target-shim@^5.0.0:
   resolved "https://registry.yarnpkg.com/event-target-shim/-/event-target-shim-5.0.1.tgz#5d4d3ebdf9583d63a5333ce2deb7480ab2b05789"
   integrity sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==
 
+js-nacl@^1.3.2:
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/js-nacl/-/js-nacl-1.3.2.tgz#f2f6da8bad61d300f09ccc5acbd0fd75f11e258f"
+  integrity sha512-XEV2slQ60lLhtL8X+PfFYFfen3b0eg+IU3deWKXKF285nqAf/f24Z15LvlLkVogpAb/9eAxe7o1AtThhKGvQkg==
+
 mime-db@1.45.0:
   version "1.45.0"
   resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.45.0.tgz#cceeda21ccd7c3a745eba2decd55d4b73e7879ea"

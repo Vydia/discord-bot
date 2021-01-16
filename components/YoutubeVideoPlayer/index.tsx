@@ -1,6 +1,5 @@
-import { FC, useCallback, useEffect, useMemo, useRef } from "react"
+import { FC, useCallback, useEffect, useState } from "react"
 import load from 'load-script'
-import useIsMounted from "../hooks/useIsMounted"
 
 type Props = {
   videoId: string,
@@ -8,49 +7,33 @@ type Props = {
 }
 
 const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
-  const isMounted = useIsMounted()
+  const [player, setPlayer] = useState(null)
 
   useEffect(() => {
-    if(!videoRef?.current) return
     load('https://www.youtube.com/iframe_api')
-    window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady
+    setPlayer(internalPlayer())
     return () => {}
-  }, [videoRef])
-
-  const onPlayerStateChange = useMemo((event) => {
-    console.warn('dan friggin idiot', event?.data)
   }, [])
 
-  const player = useCallback(() => new YT.Player(videoRef.current, {
+  const internalPlayer = useCallback(() => new YT.Player('youtube-video', {
       height: '390',
       width: '640',
       videoId,
-      events: {
-        'onStateChange': onPlayerStateChange,
-      }
-    }), [videoId, videoRef])
+    }), [videoId])
 
-  const onYouTubeIframeAPIReady = () => {
-    player()
-  }
-
-  const videoRef = useRef(null)
-
-  const handlePause = () => {
+  const handlePause = useCallback(() => {
     player.pauseVideo()
-  }
+  }, [player])
 
-  const handlePlay = () => {
+  const handlePlay = useCallback(() => {
     player.playVideo()
-  }
+  }, [player])
 
   const seekTo = (seekSeconds: number) => {
     player.seekTo(seekSeconds, true)
   }
 
-  return <div ref={videoRef}>
-
-  </div>
+  return <div id='youtube-video' />
 }
 
 export default YoutubeVideoPlayer

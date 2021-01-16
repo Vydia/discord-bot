@@ -1,14 +1,23 @@
 import { useRouter } from 'next/router'
-import React, { FC, useState } from 'react'
+import React, { FC } from 'react'
 import YouTubeVideoPlayer from '../../components/YoutubeVideoPlayer'
+import firebase from 'firebase/app'
+import { useObjectVal } from 'react-firebase-hooks/database'
 
 type Props = {
 }
 
 const Watch: FC<Props> = () => {
   const { query } = useRouter()
-  const [play, setPlay] = useState(false)
+  const [value, loading, error] = useObjectVal(firebase.database().ref(`player/${query?.slug}`))
+  const isPlaying = !!(value && value['playing'])
   if (!query?.slug) return <div />
+  if (error || loading) {
+    return <>
+      {error && <strong>Error: {error}</strong>}
+      {loading && <span>Loading...</span>}
+    </>
+  }
 
   return (
     <main className="relative flex flex-col items-center justify-center min-h-screen bg-stars bg-black text-white">
@@ -17,18 +26,21 @@ const Watch: FC<Props> = () => {
           <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
             <YouTubeVideoPlayer
               videoId={query.slug as string}
-              play={play}
+              play={isPlaying}
               seek={10}
             />
           </h2>
           <div className="mt-8 lex lg:mt-0 ml-8 lg:flex-shrink-0">
             <div className="inline-flex rounded-md shadow">
               <button
-                onClick={() => setPlay(!play)}
+                onClick={() =>
+                  firebase.database().ref(`player/${query?.slug}`).set({
+                    'playing': isPlaying
+                  })}
                 className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
               >
                 {
-                  !play ? 'Watch Now' : 'Pause'
+                  !isPlaying ? 'Watch Now' : 'Pause'
                 }
               </button>
             </div>

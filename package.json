@@ -1,0 +1,11 @@
+{
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/Vydia/discord-bot.git",
+  "author": "dannyvassallo <danielvassallo87@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^12.5.1"
+  }
+}

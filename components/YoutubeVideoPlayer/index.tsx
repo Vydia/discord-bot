@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useState, useMemo, useRef } from 'react'
+import { FC, useCallback, useEffect, useState, useMemo } from 'react'
 import firebase from 'firebase/app'
 import { useObjectVal } from 'react-firebase-hooks/database'
 import { useRouter } from 'next/router'
@@ -45,7 +45,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
       //   firebase.database().ref(`player/${videoId}/playing`).set(!!isPlaying)
       // }
     }
-  }), [videoId, isPlaying])
+  }), [videoId, isPlaying, hasControl])
 
   const [player, setPlayer] = useState(null)
 
@@ -58,14 +58,14 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     if(!player?.seekTo) return
 
     !hasControl && player.seekTo(desiredSeek, true)
-  }, [player, desiredSeek])
+  }, [player, desiredSeek, hasControl])
 
   const handlePlay = useCallback(() => {
     if(!player?.playVideo) return
     console.warn('play')
     seek && !hasControl && handleSeekTo()
     player.playVideo()
-  }, [player])
+  }, [player, seek, hasControl, handleSeekTo])
 
   useEffect(() => {
     if(!player) setPlayer(internalPlayer())

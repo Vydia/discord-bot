@@ -19,10 +19,10 @@ describe('Index', () => {
 
     screen.getByText('Enter a YouTube link to start or join a Watch Party!')
 
-    userEvent.type(screen.getByRole('textbox'), 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+    userEvent.type(screen.getByRole('textbox'), 'https://www.youtube.com/watch?v=dQw4w9WgXcQ?hasContropl=true')
     userEvent.click(screen.getByRole('button'))
 
-    expect(path).toBe('/watch/dQw4w9WgXcQ')
+    expect(path).toBe('/watch/dQw4w9WgXcQ?hasControl=true')
   })
 
   test('when given an invalid YouTube Video URL it shows a browser alert', async () => {

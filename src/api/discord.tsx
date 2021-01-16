@@ -1,6 +1,6 @@
 import naclFactory from "js-nacl"
 
-const PUBLIC_KEY = '<your public key here>'
+const PUBLIC_KEY = '516311b92a3f7ef74e8034274aedcad679216d5f19183becf4a627b06b9884d4'
 const PING_PONG = {"type": 1}
 const RESPONSE_TYPES =  {
   "PONG": 1,

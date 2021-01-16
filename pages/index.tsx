@@ -15,7 +15,7 @@ type Props = {
 }
 
 const Home: FC<Props> = () => {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef(null)
 
   return (
     <div>

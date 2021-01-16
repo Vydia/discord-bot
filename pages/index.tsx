@@ -43,7 +43,7 @@ const Home: FC<Props> = () => {
               alert('Oops! Try entering a valid YouTube URL this time.')
             }
           }}>
-            <input className="block w-full my-4 p-4" placeholder="Paste YouTube link here" defaultValue="" ref={(c: HTMLInputElement) => inputRef.current = c} />
+            <input className="block w-full my-4 p-4 bg-white text-black" placeholder="Paste YouTube link here" defaultValue="" ref={(c: HTMLInputElement) => inputRef.current = c} />
             <button className="block w-full p-4">Go</button>
           </form>
         </div>

@@ -1,7 +1,6 @@
 import naclFactory from "js-nacl"
 
 const PUBLIC_KEY = '516311b92a3f7ef74e8034274aedcad679216d5f19183becf4a627b06b9884d4'
-const PING_PONG = {"type": 1}
 const RESPONSE_TYPES =  {
   "PONG": 1,
   "ACK_NO_SOURCE": 2,
@@ -36,7 +35,7 @@ const lambdaHandler = (event, context) => {
   const body = event['body-json']
 
   if (body["type"] == 1) {
-    return PING_PONG
+    return {"type": 1}
   }
 
   return {

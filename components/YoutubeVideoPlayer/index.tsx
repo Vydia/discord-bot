@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useState } from "react"
+import { FC, useCallback, useEffect, useState } from 'react'
 
 type Props = {
   videoId: string,
@@ -6,25 +6,27 @@ type Props = {
   seek: number
 }
 
-const YoutubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
+const YouTubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
   const [player, setPlayer] = useState(null)
 
   useEffect(() => {
     if (!player) setPlayer(internalPlayer())
-    return () => {}
+    return () => {
+      setPlayer(null)
+    }
   }, [])
 
   useEffect(() => {
     if(!player) return
     seek && seekTo(seek)
-    !play ? handlePlay() : handlePause()
+    play ? handlePlay() : handlePause()
   }, [play, seek])
 
   const internalPlayer = useCallback(() => new window['YT'].Player('youtube-video', {
-      height: '390',
-      width: '640',
-      videoId,
-    }), [videoId])
+    height: '390',
+    width: '640',
+    videoId,
+  }), [videoId])
 
   const handlePause = useCallback(() => {
     player.pauseVideo()
@@ -41,4 +43,4 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
   return <div id='youtube-video' />
 }
 
-export default YoutubeVideoPlayer
+export default YouTubeVideoPlayer

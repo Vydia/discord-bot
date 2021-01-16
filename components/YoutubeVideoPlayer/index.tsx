@@ -2,16 +2,25 @@ import { FC, useCallback, useEffect, useState } from "react"
 
 type Props = {
   videoId: string,
-
+  play: boolean
 }
 
-const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
+const YoutubeVideoPlayer: FC<Props> = ({ videoId, play }) => {
   const [player, setPlayer] = useState(null)
 
   useEffect(() => {
-    setPlayer(internalPlayer())
+    if (!player) setPlayer(internalPlayer())
+    if (play) {
+      if(!player) return
+
+      handlePlay()
+    } else {
+      if(!player) return
+
+      handlePause()
+    }
     return () => {}
-  }, [])
+  }, [play])
 
   const internalPlayer = useCallback(() => new window['YT'].Player('youtube-video', {
       height: '390',

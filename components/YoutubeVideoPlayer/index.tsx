@@ -19,14 +19,14 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
     events: {
       onStateChange: ({ data, target }) => {
         switch(data) {
-          case window.YT.PlayerState.PLAYING:
-            if(!isPlaying) target.pauseVideo()
-            break
-          case YT.PlayerState.PAUSED:
-            if(isPlaying) target.playVideo()
-            break
-          default:
-            break
+        case window.YT.PlayerState.PLAYING:
+          if(!isPlaying) target.pauseVideo()
+          break
+        case YT.PlayerState.PAUSED:
+          if(isPlaying) target.playVideo()
+          break
+        default:
+          break
         }
       }
       // onReady: () => {

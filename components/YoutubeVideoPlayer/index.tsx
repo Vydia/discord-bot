@@ -1,48 +1,43 @@
 import { FC, useCallback, useEffect, useState } from 'react'
-import load from 'load-script'
+
 type Props = {
   videoId: string,
   play: boolean,
-  seek: number
+  seek?: number
 }
 
-const YouTubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
-  const [player, setPlayer] = useState(null)
-
-  useEffect(() => {
-    load('https://www.youtube.com/iframe_api')
-    if (!player) setPlayer(internalPlayer())
-    return () => {
-      setPlayer(null)
-    }
-  }, [player, setPlayer, internalPlayer])
-
-  useEffect(() => {
-    if(!player) return
-
-    seek && handleSeekTo(seek)
-    play ? handlePlay() : handlePause()
-  }, [play, seek, handlePause, handlePlay, handleSeekTo, player])
-
-  const internalPlayer = useCallback(() => new window['YT'].Player('youtube-video', {
+const YoutubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
+  const internalPlayer = useCallback(() => new YT.Player('youtube-video', {
     height: '390',
     width: '640',
     videoId,
   }), [videoId])
 
+  const [player, setPlayer] = useState(null)
+
   const handlePause = useCallback(() => {
+    if(!player?.pauseVideo) return
     player.pauseVideo()
   }, [player])
 
   const handlePlay = useCallback(() => {
+    if(!player?.playVideo) return
     player.playVideo()
   }, [player])
 
   const handleSeekTo = useCallback((seekSeconds: number) => {
+    if(!player?.seekTo) return
     player.seekTo(seekSeconds, true)
   }, [player])
+
+  useEffect(() => {
+    if(!player) setPlayer(internalPlayer())
+    // console.warn(player)
+    play ? handlePlay() : handlePause()
+    seek && handleSeekTo(seek)
+  }, [play, player, seek, handlePause, handlePlay, handleSeekTo, internalPlayer])
 
   return <div id='youtube-video' />
 }
 
-export default YouTubeVideoPlayer
+export default YoutubeVideoPlayer

@@ -1,4 +1,5 @@
 import naclFactory from 'js-nacl'
+import type { NextApiRequest, NextApiResponse } from 'next'
 
 const PUBLIC_KEY = '516311b92a3f7ef74e8034274aedcad679216d5f19183becf4a627b06b9884d4'
 const RESPONSE_TYPES =  {
@@ -23,7 +24,7 @@ const verifySignature = (event) => {
   })
 }
 
-const lambdaHandler = (event, context) => {
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
   console.log(`event ${event}`)
 
   try {

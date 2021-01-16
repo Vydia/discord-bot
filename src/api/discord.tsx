@@ -27,12 +27,7 @@ const verifySignature = (event) => {
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   console.log(`event ${event}`)
 
-  try {
-    verifySignature(event)
-  } catch {
-    console.error('[UNAUTHORIZED] Invalid request signature: {e}')
-  }
-
+  verifySignature(event)
   const body = event['body-json']
 
   if (body['type'] == 1) {

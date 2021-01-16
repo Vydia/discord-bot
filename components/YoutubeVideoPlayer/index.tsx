@@ -1,6 +1,7 @@
-import { FC, useCallback, useEffect, useState } from 'react'
+import { FC, useCallback, useEffect, useState, useMemo } from 'react'
 import firebase from 'firebase/app'
 import { useObjectVal } from 'react-firebase-hooks/database'
+import { useRouter } from 'next/router'
 
 type Props = {
   videoId: string
@@ -11,20 +12,25 @@ const setSeek = (value, slug) => {
 }
 
 const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
+  const router = useRouter()
+  const { hasControl } = router.query
+
   const [isPlaying] = useObjectVal(firebase.database().ref(`player/${videoId}/playing`))
   const [seek] = useObjectVal(firebase.database().ref(`player/${videoId}/seek`))
+
+  const desiredSeek = useMemo(() => seek, [seek])
 
   const internalPlayer = useCallback(() => new window.YT.Player('youtube-video', {
     height: '390',
     width: '640',
-    playerVars: { 'autoplay': 1 },
     videoId,
     events: {
       onStateChange: ({ data, target }) => {
         switch(data) {
         case window.YT.PlayerState.PLAYING:
-          setSeek(target.getCurrentTime(), videoId)
+          console.warn('hello')
           // if(!isPlaying) target.pauseVideo()
+          hasControl && setSeek(target.getCurrentTime(), videoId)
           break
         case YT.PlayerState.PAUSED:
           if(isPlaying) target.playVideo()
@@ -46,24 +52,47 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     player.pauseVideo()
   }, [player])
 
+  const handleSeekTo = useCallback(() => {
+    if(!player?.seekTo) return
+
+    !hasControl && player.seekTo(desiredSeek, true)
+  }, [player, desiredSeek])
+
   const handlePlay = useCallback(() => {
     if(!player?.playVideo) return
+    console.warn('play')
+    seek && !hasControl && handleSeekTo()
     player.playVideo()
-  }, [player])
-
-  const handleSeekTo = useCallback((seekSeconds: number) => {
-    if(!player?.seekTo) return
-    player.seekTo(seekSeconds, true)
   }, [player])
 
   useEffect(() => {
     if(!player) setPlayer(internalPlayer())
 
     isPlaying ? handlePlay() : handlePause()
-    seek && handleSeekTo(seek)
-  }, [player,  handlePause, handlePlay, handleSeekTo, internalPlayer, isPlaying])
+  }, [player, handlePause, handlePlay, internalPlayer, isPlaying])
 
-  return <div id='youtube-video' />
+  useEffect(() => {
+    desiredSeek && handleSeekTo()
+  }, [desiredSeek, handleSeekTo])
+
+  return <>
+    <div id='youtube-video' />
+    <div className="mt-8 lex lg:mt-0 ml-8 lg:flex-shrink-0">
+      { hasControl &&
+        <div className="inline-flex rounded-md shadow">
+          <button
+            onClick={() =>
+              firebase.database().ref(`player/${videoId}/playing`).set(!isPlaying)
+            }
+            className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+          >
+            {
+              !isPlaying ? 'Watch Now' : 'Pause'
+            }
+          </button>
+        </div> }
+    </div>
+  </>
 }
 
 export default YoutubeVideoPlayer

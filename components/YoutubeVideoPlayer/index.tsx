@@ -12,7 +12,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
   const [value] = useObjectVal(firebase.database().ref(`player/${videoId}`))
   const isPaused = !!(value && !value['playing'])
 
-  const internalPlayer = useCallback(() => new YT.Player('youtube-video', {
+  const internalPlayer = useCallback(() => new window.YT.Player('youtube-video', {
     height: '390',
     width: '640',
     playerVars: { 'autoplay': 1 },

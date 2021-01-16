@@ -1,12 +1,12 @@
 import { useRouter } from 'next/router'
 import React, { FC } from 'react'
-import firebase from "firebase/app"
-import "firebase/database"
+import firebase from 'firebase/app'
+import 'firebase/database'
 import {
   FirebaseDatabaseProvider,
   FirebaseDatabaseNode
-} from "@react-firebase/database"
-import { config } from "../../firebaseConfig"
+} from '@react-firebase/database'
+import { config } from '../../firebaseConfig'
 
 type Props = {
 }

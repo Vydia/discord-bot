@@ -1,5 +1,6 @@
 import { FC, useEffect, useMemo, useRef } from "react"
 import load from 'load-script'
+import useIsMounted from "../hooks/useIsMounted"
 
 type Props = {
   videoId: string,
@@ -7,6 +8,7 @@ type Props = {
 }
 
 const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
+  const isMounted = useIsMounted()
   useEffect(() => {
     load('https://www.youtube.com/iframe_api')
     window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady
@@ -17,8 +19,10 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     console.warn('dan friggin idiot', event?.data)
   }, [])
 
-  const player = useMemo(() => (
-    new YT.Player(videoRef.current, {
+  const player = useMemo(() => {
+    if (!isMounted) return
+
+    return new YT.Player(videoRef.current, {
       height: '390',
       width: '640',
       videoId,
@@ -26,7 +30,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
         'onStateChange': onPlayerStateChange,
       }
     })
-  ), [videoId])
+  }, [videoId])
 
   const onYouTubeIframeAPIReady = () => {
     player()
@@ -46,9 +50,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     player.seekTo(seekSeconds, true)
   }
 
-  return <div ref={(ref) => {
-    videoRef.current = ref
-  }}>
+  return <div ref={videoRef}>
 
   </div>
 }

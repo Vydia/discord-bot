@@ -1,4 +1,6 @@
 import { FC, useCallback, useEffect, useState } from 'react'
+import firebase from 'firebase/app'
+import { useObjectVal } from 'react-firebase-hooks/database'
 
 type Props = {
   videoId: string,
@@ -7,11 +9,22 @@ type Props = {
 }
 
 const YoutubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
+  const [value] = useObjectVal(firebase.database().ref(`player/${videoId}`))
+  const isPaused = !!(value && !value['playing'])
+
   const internalPlayer = useCallback(() => new YT.Player('youtube-video', {
     height: '390',
     width: '640',
+    playerVars: { 'autoplay': 1 },
     videoId,
-  }), [videoId])
+    events: {
+      onReady: () => {
+        firebase.database().ref(`player/${videoId}`).set({
+          'playing': !isPaused,
+        })
+      }
+    }
+  }), [videoId, isPaused])
 
   const [player, setPlayer] = useState(null)
 

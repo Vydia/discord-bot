@@ -10,7 +10,7 @@ type Props = {
 const Watch: FC<Props> = () => {
   const { query } = useRouter()
   const [value, loading, error] = useObjectVal(firebase.database().ref(`player/${query?.slug}`))
-  const isPaused = value && !value['playing']
+  const isPaused = !!(value && !value['playing'])
   if (!query?.slug) return <div />
   if (error || loading) {
     return <>
@@ -35,7 +35,7 @@ const Watch: FC<Props> = () => {
               <button
                 onClick={() =>
                   firebase.database().ref(`player/${query?.slug}`).set({
-                    'playing': isPaused
+                    'playing': isPaused,
                   })}
                 className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
               >

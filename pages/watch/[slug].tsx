@@ -7,7 +7,7 @@ import { useObjectVal } from 'react-firebase-hooks/database'
 
 if (!firebase.apps.length) {
   firebase.initializeApp(config)
-}else {
+} else {
   firebase.app()
 }
 type Props = {

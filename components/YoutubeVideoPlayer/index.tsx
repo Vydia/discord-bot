@@ -17,13 +17,13 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
     playerVars: { 'autoplay': 1 },
     videoId,
     events: {
-      onStateChange: ({ data }) => {
+      onStateChange: ({ data, target }) => {
         switch(data) {
           case window.YT.PlayerState.PLAYING:
-            firebase.database().ref(`player/${videoId}/playing`).set(!isPlaying)
+            if(!isPlaying) target.pauseVideo()
             break
           case YT.PlayerState.PAUSED:
-            firebase.database().ref(`player/${videoId}/playing`).set(!isPlaying)
+            if(isPlaying) target.playVideo()
             break
           default:
             break
@@ -33,7 +33,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
       //   firebase.database().ref(`player/${videoId}/playing`).set(!!isPlaying)
       // }
     }
-  }), [videoId])
+  }), [videoId, isPlaying])
 
   const [player, setPlayer] = useState(null)
 

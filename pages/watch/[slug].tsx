@@ -17,6 +17,7 @@ const Watch: FC<Props> = () => {
               <YoutubeVideoPlayer
                 videoId={query.slug as string}
                 play={play}
+                seek={10}
               />
             </h2>
             <div className="mt-8 lex lg:mt-0 ml-8 lg:flex-shrink-0">

@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useRef } from "react"
+import { FC, useCallback, useEffect, useMemo, useRef } from "react"
 import load from 'load-script'
 import useIsMounted from "../hooks/useIsMounted"
 
@@ -9,28 +9,26 @@ type Props = {
 
 const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
   const isMounted = useIsMounted()
+
   useEffect(() => {
+    if(!videoRef?.current) return
     load('https://www.youtube.com/iframe_api')
     window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady
     return () => {}
-  }, [])
+  }, [videoRef])
 
   const onPlayerStateChange = useMemo((event) => {
     console.warn('dan friggin idiot', event?.data)
   }, [])
 
-  const player = useMemo(() => {
-    if (!isMounted) return
-
-    return new YT.Player(videoRef.current, {
+  const player = useCallback(() => new YT.Player(videoRef.current, {
       height: '390',
       width: '640',
       videoId,
       events: {
         'onStateChange': onPlayerStateChange,
       }
-    })
-  }, [videoId])
+    }), [videoId, videoRef])
 
   const onYouTubeIframeAPIReady = () => {
     player()

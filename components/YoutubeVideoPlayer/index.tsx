@@ -9,8 +9,7 @@ type Props = {
 }
 
 const YoutubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
-  const [value] = useObjectVal(firebase.database().ref(`player/${videoId}`))
-  const isPaused = !!(value && !value['playing'])
+  const [isPlaying] = useObjectVal(firebase.database().ref(`player/${videoId}/playing`))
 
   const internalPlayer = useCallback(() => new window.YT.Player('youtube-video', {
     height: '390',
@@ -18,13 +17,23 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
     playerVars: { 'autoplay': 1 },
     videoId,
     events: {
-      onReady: () => {
-        firebase.database().ref(`player/${videoId}`).set({
-          'playing': !isPaused,
-        })
+      onStateChange: ({ data }) => {
+        switch(data) {
+          case window.YT.PlayerState.PLAYING:
+            firebase.database().ref(`player/${videoId}/playing`).set(!isPlaying)
+            break
+          case YT.PlayerState.PAUSED:
+            firebase.database().ref(`player/${videoId}/playing`).set(!isPlaying)
+            break
+          default:
+            break
+        }
       }
+      // onReady: () => {
+      //   firebase.database().ref(`player/${videoId}/playing`).set(!!isPlaying)
+      // }
     }
-  }), [videoId, isPaused])
+  }), [videoId])
 
   const [player, setPlayer] = useState(null)
 
@@ -45,7 +54,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
 
   useEffect(() => {
     if(!player) setPlayer(internalPlayer())
-    // console.warn(player)
+
     play ? handlePlay() : handlePause()
     seek && handleSeekTo(seek)
   }, [play, player, seek, handlePause, handlePlay, handleSeekTo, internalPlayer])

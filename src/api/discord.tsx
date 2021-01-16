@@ -1,4 +1,4 @@
-const naclFactory = require("js-nacl")
+import naclFactory from "js-nacl"
 
 const PUBLIC_KEY = '<your public key here>'
 const PING_PONG = {"type": 1}
@@ -11,9 +11,9 @@ const RESPONSE_TYPES =  {
 }
 
 const verifySignature = (event) => {
-  rawBody = event["rawBody"]
-  authSig = event['params']['header']['x-signature-ed25519']
-  authTs  = event['params']['header']['x-signature-timestamp']
+  const rawBody = event["rawBody"]
+  const authSig = event['params']['header']['x-signature-ed25519']
+  const authTs  = event['params']['header']['x-signature-timestamp']
 
   naclFactory.instantiate((nacl) => {
     return nacl.crypto_sign_verify_detached(
@@ -30,7 +30,7 @@ const lambdaHandler = (event, context) => {
   try {
     verifySignature(event)
   } catch {
-    console.error(f"[UNAUTHORIZED] Invalid request signature: {e}")
+    console.error("[UNAUTHORIZED] Invalid request signature: {e}")
   }
 
   const body = event['body-json']
@@ -42,7 +42,7 @@ const lambdaHandler = (event, context) => {
   return {
     "type": RESPONSE_TYPES['MESSAGE_NO_SOURCE'],
     "data": {
-      "tts": False,
+      "tts": false,
       "content": "BEEP BOOP",
       "embeds": [],
       "allowed_mentions": []

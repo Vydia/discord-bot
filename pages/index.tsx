@@ -33,6 +33,8 @@ const Home: FC<Props> = () => {
           <form onSubmit={(event) => {
             event.preventDefault()
             const url = inputRef.current.value
+            if (!url) return
+
             const videoId = getVideoId(url)
 
             if (videoId) {

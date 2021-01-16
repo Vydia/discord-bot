@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect, useState } from 'react'
-
+import load from 'load-script'
 type Props = {
   videoId: string,
   play: boolean,
@@ -10,6 +10,7 @@ const YouTubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
   const [player, setPlayer] = useState(null)
 
   useEffect(() => {
+    load('https://www.youtube.com/iframe_api')
     if (!player) setPlayer(internalPlayer())
     return () => {
       setPlayer(null)
@@ -18,9 +19,10 @@ const YouTubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
 
   useEffect(() => {
     if(!player) return
-    seek && seekTo(seek)
+
+    seek && handleSeekTo(seek)
     play ? handlePlay() : handlePause()
-  }, [play, seek, handlePause, handlePlay, seekTo, player])
+  }, [play, seek, handlePause, handlePlay, handleSeekTo, player])
 
   const internalPlayer = useCallback(() => new window['YT'].Player('youtube-video', {
     height: '390',
@@ -36,7 +38,7 @@ const YouTubeVideoPlayer: FC<Props> = ({ videoId, play, seek }) => {
     player.playVideo()
   }, [player])
 
-  const seekTo = useCallback((seekSeconds: number) => {
+  const handleSeekTo = useCallback((seekSeconds: number) => {
     player.seekTo(seekSeconds, true)
   }, [player])
 

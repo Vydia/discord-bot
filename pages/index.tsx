@@ -2,13 +2,15 @@ import Head from 'next/head'
 import React, { FC, useRef } from 'react'
 import Router from 'next/router'
 
-function getVideoId (url: string): string | void {
-  const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
-  const match = url.match(regExp)
+function getVideoId (urlOrId: string): string | void {
+  const urlMatch = urlOrId.match(/^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/)
 
-  if (match && match[2].length === 11) {
-    return match[2]
+  if (urlMatch && urlMatch[2].length === 11) {
+    return urlMatch[2]
   }
+  const idMatch = urlOrId.match(/^[^#&?]{11}$/)
+
+  if (idMatch) return idMatch[0]
 }
 
 type Props = {
@@ -32,15 +34,15 @@ const Home: FC<Props> = () => {
         <div className="max-w-xl w-screen">
           <form onSubmit={(event) => {
             event.preventDefault()
-            const url = inputRef.current && inputRef.current.value
-            if (!url) return
+            const urlOrId = inputRef.current && inputRef.current.value
+            if (!urlOrId) return
 
-            const videoId = getVideoId(url)
+            const videoId = getVideoId(urlOrId)
 
             if (videoId) {
               Router.push(`/watch/${videoId}?hasControl=true`)
             } else {
-              alert('Oops! Try entering a valid YouTube URL this time.')
+              alert('Oops! Try entering a valid YouTube URL or Video ID this time.')
             }
           }}>
             <input className="block w-full my-4 p-4 bg-white text-black" placeholder="Paste YouTube link here" defaultValue="" ref={(c: HTMLInputElement) => inputRef.current = c} />

@@ -90,7 +90,8 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
   }, [player, seek, hasControl, handleSeekTo])
 
   useEffect(() => {
-    if(!player && youTubeIframeAPIReady) setPlayer(internalPlayer())
+    if(!youTubeIframeAPIReady) return
+    if(!player) setPlayer(internalPlayer())
 
     isPlaying ? handlePlay() : handlePause()
   }, [youTubeIframeAPIReady, player, handlePause, handlePlay, internalPlayer, isPlaying])

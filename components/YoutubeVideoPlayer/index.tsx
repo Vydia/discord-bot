@@ -8,6 +8,9 @@ type Props = {
   videoId: string
 }
 
+const height = 390
+const width = 640
+
 const setSeek = (value, slug) => {
   firebase.database().ref(`player/${slug}/seek`).set(value)
 }
@@ -44,8 +47,8 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
   const desiredSeek = useMemo(() => seek, [seek])
 
   const internalPlayer = useCallback(() => new window.YT.Player('youtube-video', {
-    height: '390',
-    width: '640',
+    height: `${height}`,
+    width: `${width}`,
     videoId,
     events: {
       onStateChange: ({ data, target }) => {
@@ -101,7 +104,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
   }, [desiredSeek, handleSeekTo])
 
   return <>
-    <div id='youtube-video' />
+    <div id='youtube-video' style={useMemo(() => ({ height: `${height}px`, width: `${width}px` }), [])} />
     <div className="mt-8 lex lg:mt-0 ml-8 lg:flex-shrink-0">
       { hasControl &&
         <div className="inline-flex rounded-md shadow">

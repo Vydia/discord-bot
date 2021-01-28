@@ -12,12 +12,34 @@ const setSeek = (value, slug) => {
   firebase.database().ref(`player/${slug}/seek`).set(value)
 }
 
+const useYouTubeIframeAPIReady = (): boolean => {
+  const [isReady, setIsReady] = useState<boolean>(false)
+
+  useEffect(() => {
+    if (window.YT.Player) {
+      setIsReady(true)
+      return
+    }
+
+    window['onYouTubeIframeAPIReady'] = () => {
+      setIsReady(true)
+    }
+
+    return () => {
+      delete window['onYouTubeIframeAPIReady']
+    }
+  }, [setIsReady])
+
+  return isReady
+}
+
 const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
   const router = useRouter()
   const { hasControl } = router.query
   const { addToast } = useToasts()
   const [isPlaying] = useObjectVal(firebase.database().ref(`player/${videoId}/playing`))
   const [seek] = useObjectVal(firebase.database().ref(`player/${videoId}/seek`))
+  const youTubeIframeAPIReady = useYouTubeIframeAPIReady()
 
   const desiredSeek = useMemo(() => seek, [seek])
 
@@ -68,10 +90,10 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
   }, [player, seek, hasControl, handleSeekTo])
 
   useEffect(() => {
-    if(!player) setPlayer(internalPlayer())
+    if(!player && youTubeIframeAPIReady) setPlayer(internalPlayer())
 
     isPlaying ? handlePlay() : handlePause()
-  }, [player, handlePause, handlePlay, internalPlayer, isPlaying])
+  }, [youTubeIframeAPIReady, player, handlePause, handlePlay, internalPlayer, isPlaying])
 
   useEffect(() => {
     desiredSeek && handleSeekTo()

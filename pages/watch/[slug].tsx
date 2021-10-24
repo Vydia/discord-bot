@@ -17,7 +17,7 @@ const WatchInner: FC<Props> = ({ slug }) => {
   return (
     <main className="relative flex flex-col items-center justify-center min-h-screen bg-stars bg-black text-white">
       <div className="bg-black">
-        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
+        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between flex-col">
           <YouTubeVideoPlayer videoId={slug as string} />
         </div>
       </div>

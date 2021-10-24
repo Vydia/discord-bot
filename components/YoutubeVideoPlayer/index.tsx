@@ -127,44 +127,32 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     desiredSeek && handleSeekTo()
   }, [desiredSeek, handleSeekTo])
 
+  const shareLink = useMemo(() => location.protocol + '//' + location.host + location.pathname, [])
   const handleCopyLink = useCallback(() => {
-    navigator.clipboard.writeText(location.protocol + '//' + location.host + location.pathname)
+    navigator.clipboard.writeText(shareLink)
     addToast(
-      'Copied URL to clipboard successfully!',
+      'Link Copied to clipboard. Send the link to everyone who wants to watch along with you!',
       {
         appearance: 'success',
         position: 'bottom-center',
         autoDismiss: true,
       }
     )
-  }, [addToast])
-
-  const handlePlayPause = useCallback(() =>
-    setIsPlaying(!isPlaying)
-  , [isPlaying, setIsPlaying])
+  }, [addToast, shareLink])
 
   return <>
-    <div id='youtube-video' style={PLAYER_STYLE} />
-    <div className="mt-8 lex lg:mt-0 ml-8 lg:flex-shrink-0">
-      { hasControl &&
-        <div className="inline-flex rounded-md shadow">
-          <button
-            onClick={handlePlayPause}
-            className="m-2 inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-          >
-            {
-              !isPlaying ? 'Play' : 'Pause'
-            }
-          </button>
-          <button
-            onClick={handleCopyLink}
-            className="m-2 inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-          >
-            Copy Link
-          </button>
-        </div>
-      }
+    <div className="flex items-center">
+      { hasControl && <>
+        <h3>You are host</h3>
+        <button
+          onClick={handleCopyLink}
+          className="m-2 flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+        >
+          Click to Copy Share Link
+        </button>
+      </> }
     </div>
+    <div id='youtube-video' style={PLAYER_STYLE} />
   </>
 }
 

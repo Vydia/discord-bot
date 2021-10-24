@@ -3,6 +3,7 @@ import firebase from 'firebase/app'
 import { useObjectVal } from 'react-firebase-hooks/database'
 import { useRouter } from 'next/router'
 import { useToasts } from 'react-toast-notifications'
+import useInterval from '../hooks/useInterval'
 
 type Props = {
   videoId: string
@@ -10,6 +11,8 @@ type Props = {
 
 const height = 390
 const width = 640
+const ROUGH_ATTENDEE_SEEK_DELAY_MS = 500
+const ROUGH_PLAYER_LOAD_DELAY_MS = 1000
 const PLAYER_STYLE = { height: `${height}px`, width: `${width}px` }
 
 const useYouTubeIframeAPIReady = (): boolean => {
@@ -84,18 +87,20 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     videoId,
     events: {
       onReady: ({ target }) => {
-        if (hasControl) {
-          if (!seekRef.current) setSeek(target.getCurrentTime())
-          setIsPlaying(false)
-          target.pauseVideo()
-        } else {
-          if (isPlayingRef.current) {
-            target.playVideo()
-          } else {
+        setTimeout(() => {
+          if (hasControl) {
+            if (!seekRef.current) setSeek(target.getCurrentTime())
+            setIsPlaying(false)
             target.pauseVideo()
+          } else {
+            if (isPlayingRef.current) {
+              target.playVideo()
+            } else {
+              target.pauseVideo()
+            }
           }
-        }
-        target.seekTo(seekRef.current, true)
+          target.seekTo(seekRef.current + (ROUGH_ATTENDEE_SEEK_DELAY_MS / 1000), true)
+        }, ROUGH_PLAYER_LOAD_DELAY_MS)
       },
       onStateChange: ({ data, target }) => {
         switch(data) {
@@ -130,11 +135,16 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     player.pauseVideo()
   }, [player])
 
-  const handleSeekTo = useCallback(() => {
-    if(!player?.seekTo) return
+  const handleSeekTo = useCallback((to: void | number = undefined) => {
+    if (hasControl || !player?.getCurrentTime || !player?.seekTo) return
+    if (!to) to = seekRef.current
+    if (!to) return
 
-    !hasControl && player.seekTo(seek, true)
-  }, [player, seek, hasControl])
+    // Only seek if desired seek position is at least 1 second away from current location.
+    if (Math.abs(to - player.getCurrentTime()) < 1) return
+
+    !hasControl && player.seekTo(to, true)
+  }, [player, seekRef, hasControl])
 
   const handlePlay = useCallback(() => {
     if(!player?.playVideo) return
@@ -151,9 +161,26 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     isPlaying ? handlePlay() : handlePause()
   }, [youTubeIframeAPIReady, player, handlePause, handlePlay, internalPlayer, isPlaying, hasControl])
 
+  // Auto-seek. Helps new attendees join and catch up from where the video is, without the host having to stop and start the video and update seek that way.
   useEffect(() => {
-    seek && handleSeekTo()
-  }, [seek, handleSeekTo])
+    handleSeekTo(seek + (ROUGH_ATTENDEE_SEEK_DELAY_MS / 1000))
+  }, [handleSeekTo, seek])
+
+  useInterval(
+    () => {
+      if (hasControl && isPlaying && player?.getCurrentTime) setSeek(player?.getCurrentTime())
+    },
+    // Update seek every 1 second. Or null to disable interval.
+    hasControl && isPlaying && player?.getCurrentTime ? 1000 : null,
+  )
+
+  // TODO: Remove debugging
+  // useInterval(
+  //   () => {
+  //     console.log('player', player, player?.getPlayerState())
+  //   },
+  //   1000,
+  // )
 
   const shareLink = useMemo(() => location.protocol + '//' + location.host + location.pathname, [])
   const handleCopyLink = useCallback(() => {
@@ -170,7 +197,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
 
   return <>
     <div className="flex items-center">
-      { hasControl && <>
+      { hasControl ? <>
         <h3>You are host</h3>
         <button
           onClick={handleCopyLink}
@@ -178,9 +205,20 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
         >
           Click to Copy Share Link
         </button>
-      </> }
+      </> : <div>
+        <h3>{'Someone else is host.'}</h3>
+      </div> }
     </div>
     <div id='youtube-video' style={PLAYER_STYLE} />
+
+    {
+      hasControl ? <div>
+        <p>As host, when you play or pause the video, or seek to a new timestamp, all attendees watching do the same!</p>
+      </div> : <div>
+        <p>{'If the video doesn\'t start, click on the video player until it loads.'}</p>
+        <p>{'If that doesn\'t work, it probably means the host has paused the video for everyone.'}</p>
+      </div>
+    }
   </>
 }
 

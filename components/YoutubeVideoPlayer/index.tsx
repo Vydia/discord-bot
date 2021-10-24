@@ -10,9 +10,14 @@ type Props = {
 
 const height = 390
 const width = 640
+const PLAYER_STYLE = { height: `${height}px`, width: `${width}px` }
 
 const setSeek = (value, slug) => {
   firebase.database().ref(`player/${slug}/seek`).set(value)
+}
+
+const setIsPlaying = (value, slug) => {
+  firebase.database().ref(`player/${slug}/playing`).set(value)
 }
 
 const useYouTubeIframeAPIReady = (): boolean => {
@@ -103,33 +108,37 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     desiredSeek && handleSeekTo()
   }, [desiredSeek, handleSeekTo])
 
+  const handleCopyLink = useCallback(() => {
+    navigator.clipboard.writeText(location.protocol + '//' + location.host + location.pathname)
+    addToast(
+      'Copied URL to clipboard successfully!',
+      {
+        appearance: 'success',
+        position: 'bottom-center',
+        autoDismiss: true,
+      }
+    )
+  }, [addToast])
+
+  const handlePlayPause = useCallback(() =>
+    setIsPlaying(!isPlaying, videoId)
+  , [isPlaying, videoId])
+
   return <>
-    <div id='youtube-video' style={useMemo(() => ({ height: `${height}px`, width: `${width}px` }), [])} />
+    <div id='youtube-video' style={PLAYER_STYLE} />
     <div className="mt-8 lex lg:mt-0 ml-8 lg:flex-shrink-0">
       { hasControl &&
         <div className="inline-flex rounded-md shadow">
           <button
-            onClick={() =>
-              firebase.database().ref(`player/${videoId}/playing`).set(!isPlaying)
-            }
+            onClick={handlePlayPause}
             className="m-2 inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
           >
             {
-              !isPlaying ? 'Watch Now' : 'Pause'
+              !isPlaying ? 'Play' : 'Pause'
             }
           </button>
           <button
-            onClick={() => {
-              navigator.clipboard.writeText(location.protocol + '//' + location.host + location.pathname)
-              addToast(
-                'Copied URL to clipboard successfully!',
-                {
-                  appearance: 'success',
-                  position: 'bottom-center',
-                  autoDismiss: true,
-                }
-              )
-            }}
+            onClick={handleCopyLink}
             className="m-2 inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
           >
             Copy Link

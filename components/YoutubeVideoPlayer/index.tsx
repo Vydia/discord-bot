@@ -80,6 +80,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     setIsPlaying,
   } = useSharedPlayerState(videoId)
   const youTubeIframeAPIReady = useYouTubeIframeAPIReady()
+  const [playerState, setPlayerState] = useState<number>(-2)
 
   const internalPlayer = useCallback(() => new window.YT.Player('youtube-video', {
     height: `${height}`,
@@ -105,6 +106,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
       onStateChange: ({ data, target }) => {
         switch(data) {
         case window.YT.PlayerState.PLAYING:
+          setPlayerState(data)
           if (hasControl) {
             setSeek(target.getCurrentTime())
             setIsPlaying(true)
@@ -114,6 +116,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
           }
           break
         case window.YT.PlayerState.PAUSED:
+          setPlayerState(data)
           if (hasControl) {
             setIsPlaying(false)
           } else {
@@ -215,8 +218,13 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
       hasControl ? <div>
         <p>As host, when you play or pause the video, or seek to a new timestamp, all attendees watching do the same!</p>
       </div> : <div>
-        <p>{'If the video doesn\'t start, click on the video player until it loads.'}</p>
-        <p>{'If that doesn\'t work, it probably means the host has paused the video for everyone.'}</p>
+        { !youTubeIframeAPIReady
+          ? 'Loading...'
+          : playerState === window.YT.PlayerState.PLAYING
+            ? <p>{'The host is playing the video for all attendees.'}</p>
+            : playerState === window.YT.PlayerState.PAUSED
+              ? <p>{'The host has paused the video for all attendees.'}</p>
+              : <p>{`Click on the video until it loads (${ isPlaying ? 'Host is playing video' : 'Host has paused video' }).`}</p>}
       </div>
     }
   </>

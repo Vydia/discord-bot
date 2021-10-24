@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useState, useMemo } from 'react'
+import { FC, useCallback, useEffect, useRef, useState, useMemo } from 'react'
 import firebase from 'firebase/app'
 import { useObjectVal } from 'react-firebase-hooks/database'
 import { useRouter } from 'next/router'
@@ -35,15 +35,22 @@ const useYouTubeIframeAPIReady = (): boolean => {
 
 function useSharedPlayerState (videoId: string): {
   isPlaying: boolean,
+  isPlayingRef: { current: boolean },
   seek: number,
   setSeek: (seek: number) => void,
   setIsPlaying: (isPlaying: boolean) => void,
 } {
   const [isPlaying] = useObjectVal(firebase.database().ref(`player/${videoId}/playing`))
   const [seek] = useObjectVal(firebase.database().ref(`player/${videoId}/seek`))
+  const isPlayingRef = useRef<boolean>(!!isPlaying)
+
+  useEffect(() => {
+    isPlayingRef.current = !!isPlaying
+  }, [isPlaying])
 
   return {
     isPlaying: !!isPlaying,
+    isPlayingRef,
     seek: Number(seek),
     setSeek: useCallback((seek: number) => { firebase.database().ref(`player/${videoId}/seek`).set(seek) }, [videoId]),
     setIsPlaying: useCallback((isPlaying: boolean) => { firebase.database().ref(`player/${videoId}/playing`).set(isPlaying) }, [videoId]),
@@ -54,7 +61,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
   const router = useRouter()
   const { hasControl } = router.query
   const { addToast } = useToasts()
-  const { isPlaying, seek, setSeek, setIsPlaying } = useSharedPlayerState(videoId)
+  const { isPlaying, isPlayingRef, seek, setSeek, setIsPlaying } = useSharedPlayerState(videoId)
   const youTubeIframeAPIReady = useYouTubeIframeAPIReady()
 
   const desiredSeek = useMemo(() => seek, [seek])
@@ -64,6 +71,13 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     width: `${width}`,
     videoId,
     events: {
+      onReady: () => {
+        if (hasControl) {
+          // TODO
+        } else {
+          // TODO
+        }
+      },
       onStateChange: ({ data, target }) => {
         switch(data) {
         case window.YT.PlayerState.PLAYING:
@@ -71,28 +85,24 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
             setSeek(target.getCurrentTime())
             setIsPlaying(true)
           } else {
-            // TODO: Do we even need this?
-            // if (!isPlaying) target.pauseVideo()
+            // Prevent attendees from playing their local video on their own.
+            if (!isPlayingRef.current) target.pauseVideo()
           }
           break
         case window.YT.PlayerState.PAUSED:
           if (hasControl) {
             setIsPlaying(false)
           } else {
-            // TODO: Do we even need this?
-            // if (isPlaying) target.playVideo()
+            // Prevent attendees from pausing their local video on their own.
+            if (isPlayingRef.current) target.playVideo()
           }
           break
         default:
           break
         }
-      }
-      // TODO: Do we even need this?
-      // onReady: () => {
-      //   firebase.database().ref(`player/${videoId}/playing`).set(!!isPlaying)
-      // }
+      },
     }
-  }), [videoId, hasControl, setSeek, setIsPlaying])
+  }), [videoId, hasControl, setSeek, setIsPlaying, isPlayingRef])
 
   const [player, setPlayer] = useState(null)
 
@@ -109,7 +119,6 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
 
   const handlePlay = useCallback(() => {
     if(!player?.playVideo) return
-    console.warn('play')
     seek && !hasControl && handleSeekTo()
     player.playVideo()
   }, [player, seek, hasControl, handleSeekTo])

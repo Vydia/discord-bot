@@ -67,12 +67,21 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
       onStateChange: ({ data, target }) => {
         switch(data) {
         case window.YT.PlayerState.PLAYING:
-          // TODO: Do we even need this?
-          // if(!isPlaying) target.pauseVideo()
-          hasControl && setSeek(target.getCurrentTime())
+          if (hasControl) {
+            setSeek(target.getCurrentTime())
+            setIsPlaying(true)
+          } else {
+            // TODO: Do we even need this?
+            // if (!isPlaying) target.pauseVideo()
+          }
           break
         case window.YT.PlayerState.PAUSED:
-          if(isPlaying) target.playVideo()
+          if (hasControl) {
+            setIsPlaying(false)
+          } else {
+            // TODO: Do we even need this?
+            // if (isPlaying) target.playVideo()
+          }
           break
         default:
           break
@@ -83,7 +92,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
       //   firebase.database().ref(`player/${videoId}/playing`).set(!!isPlaying)
       // }
     }
-  }), [videoId, hasControl, setSeek, isPlaying])
+  }), [videoId, hasControl, setSeek, setIsPlaying])
 
   const [player, setPlayer] = useState(null)
 
@@ -109,8 +118,10 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     if(!youTubeIframeAPIReady) return
     if(!player) setPlayer(internalPlayer())
 
+    if (hasControl) return
+
     isPlaying ? handlePlay() : handlePause()
-  }, [youTubeIframeAPIReady, player, handlePause, handlePlay, internalPlayer, isPlaying])
+  }, [youTubeIframeAPIReady, player, handlePause, handlePlay, internalPlayer, isPlaying, hasControl])
 
   useEffect(() => {
     desiredSeek && handleSeekTo()

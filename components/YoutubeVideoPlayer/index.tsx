@@ -12,14 +12,6 @@ const height = 390
 const width = 640
 const PLAYER_STYLE = { height: `${height}px`, width: `${width}px` }
 
-const setSeek = (value, slug) => {
-  firebase.database().ref(`player/${slug}/seek`).set(value)
-}
-
-const setIsPlaying = (value, slug) => {
-  firebase.database().ref(`player/${slug}/playing`).set(value)
-}
-
 const useYouTubeIframeAPIReady = (): boolean => {
   const [isReady, setIsReady] = useState<boolean>(false)
 
@@ -41,12 +33,28 @@ const useYouTubeIframeAPIReady = (): boolean => {
   return isReady
 }
 
+function useSharedPlayerState (videoId: string): {
+  isPlaying: boolean,
+  seek: number,
+  setSeek: (seek: number) => void,
+  setIsPlaying: (isPlaying: boolean) => void,
+} {
+  const [isPlaying] = useObjectVal(firebase.database().ref(`player/${videoId}/playing`))
+  const [seek] = useObjectVal(firebase.database().ref(`player/${videoId}/seek`))
+
+  return {
+    isPlaying: !!isPlaying,
+    seek: Number(seek),
+    setSeek: useCallback((seek: number) => { firebase.database().ref(`player/${videoId}/seek`).set(seek) }, [videoId]),
+    setIsPlaying: useCallback((isPlaying: boolean) => { firebase.database().ref(`player/${videoId}/playing`).set(isPlaying) }, [videoId]),
+  }
+}
+
 const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
   const router = useRouter()
   const { hasControl } = router.query
   const { addToast } = useToasts()
-  const [isPlaying] = useObjectVal(firebase.database().ref(`player/${videoId}/playing`))
-  const [seek] = useObjectVal(firebase.database().ref(`player/${videoId}/seek`))
+  const { isPlaying, seek, setSeek, setIsPlaying } = useSharedPlayerState(videoId)
   const youTubeIframeAPIReady = useYouTubeIframeAPIReady()
 
   const desiredSeek = useMemo(() => seek, [seek])
@@ -61,7 +69,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
         case window.YT.PlayerState.PLAYING:
           // TODO: Do we even need this?
           // if(!isPlaying) target.pauseVideo()
-          hasControl && setSeek(target.getCurrentTime(), videoId)
+          hasControl && setSeek(target.getCurrentTime())
           break
         case window.YT.PlayerState.PAUSED:
           if(isPlaying) target.playVideo()
@@ -75,7 +83,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
       //   firebase.database().ref(`player/${videoId}/playing`).set(!!isPlaying)
       // }
     }
-  }), [videoId, isPlaying, hasControl])
+  }), [videoId, hasControl, setSeek, isPlaying])
 
   const [player, setPlayer] = useState(null)
 
@@ -121,8 +129,8 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
   }, [addToast])
 
   const handlePlayPause = useCallback(() =>
-    setIsPlaying(!isPlaying, videoId)
-  , [isPlaying, videoId])
+    setIsPlaying(!isPlaying)
+  , [isPlaying, setIsPlaying])
 
   return <>
     <div id='youtube-video' style={PLAYER_STYLE} />

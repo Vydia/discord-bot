@@ -89,11 +89,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     events: {
       onReady: ({ target }) => {
         setTimeout(() => {
-          if (hasControl) {
-            if (!seekRef.current) setSeek(target.getCurrentTime())
-            setIsPlaying(false)
-            target.pauseVideo()
-          } else {
+          if (!hasControl) {
             if (isPlayingRef.current) {
               target.playVideo()
             } else {
@@ -176,14 +172,6 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     // Update seek every 1 second. Or null to disable interval.
     hasControl && isPlaying && player?.getCurrentTime ? 1000 : null,
   )
-
-  // TODO: Remove debugging
-  // useInterval(
-  //   () => {
-  //     console.log('player', player, player?.getPlayerState())
-  //   },
-  //   1000,
-  // )
 
   const shareLink = useMemo(() => location.protocol + '//' + location.host + location.pathname, [])
   const handleCopyLink = useCallback(() => {

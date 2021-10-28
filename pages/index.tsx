@@ -1,6 +1,8 @@
 import Head from 'next/head'
-import React, { FC, useRef } from 'react'
+import React, { FC, useCallback, useEffect, useRef } from 'react'
 import Router from 'next/router'
+import { app } from '../lib/firebase'
+import useIsMounted from '../components/hooks/useIsMounted'
 
 function getVideoId (urlOrId: string): string | void {
   const urlMatch = urlOrId.match(/^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/)
@@ -18,6 +20,31 @@ type Props = {
 
 const Home: FC<Props> = () => {
   const inputRef = useRef<HTMLInputElement | null>(null)
+  const isMounted = useIsMounted()
+
+  const didSignInRef = useRef<boolean>(false)
+  const onAuthStateChanged = useCallback((user) => {
+    if (user) {
+      // User is signed in, see docs for a list of available properties
+      // https://firebase.google.com/docs/reference/js/firebase.User
+      console.log('User is signed in. User:', user)
+    } else {
+      console.log('User is signed out. User:', user)
+    }
+  }, [])
+
+  useEffect(() => {
+    let unsubscribe
+
+    if (isMounted && !didSignInRef.current) {
+      didSignInRef.current = true
+      const auth = app.auth()
+      unsubscribe = auth.onAuthStateChanged(onAuthStateChanged)
+      auth.signInAnonymously()
+    }
+
+    return unsubscribe
+  }, [onAuthStateChanged, isMounted])
 
   return (
     <div>

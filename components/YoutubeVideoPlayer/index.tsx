@@ -36,7 +36,7 @@ const useYouTubeIframeAPIReady = (): boolean => {
   return isReady
 }
 
-function useSharedPlayerState (videoId: string): {
+function useSharedPlayerState (partyId: string): {
   isPlaying: boolean,
   isPlayingRef: { current: boolean },
   seekRef: { current: number },
@@ -44,8 +44,8 @@ function useSharedPlayerState (videoId: string): {
   setSeek: (seek: number) => void,
   setIsPlaying: (isPlaying: boolean) => void,
 } {
-  const [isPlaying] = useObjectVal(firebase.database().ref(`player/${videoId}/playing`))
-  const [seek] = useObjectVal(firebase.database().ref(`player/${videoId}/seek`))
+  const [isPlaying] = useObjectVal(firebase.database().ref(`party/${partyId}/playing`))
+  const [seek] = useObjectVal(firebase.database().ref(`party/${partyId}/seek`))
   const isPlayingRef = useRef<boolean>(!!isPlaying)
   const seekRef = useRef<number>(Number(seek))
 
@@ -62,8 +62,8 @@ function useSharedPlayerState (videoId: string): {
     isPlayingRef,
     seek: Number(seek),
     seekRef,
-    setSeek: useCallback((seek: number) => { firebase.database().ref(`player/${videoId}/seek`).set(seek) }, [videoId]),
-    setIsPlaying: useCallback((isPlaying: boolean) => { firebase.database().ref(`player/${videoId}/playing`).set(isPlaying) }, [videoId]),
+    setSeek: useCallback((seek: number) => { firebase.database().ref(`party/${partyId}/seek`).set(seek) }, [partyId]),
+    setIsPlaying: useCallback((isPlaying: boolean) => { firebase.database().ref(`party/${partyId}/playing`).set(isPlaying) }, [partyId]),
   }
 }
 
@@ -78,7 +78,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
     seekRef,
     setSeek,
     setIsPlaying,
-  } = useSharedPlayerState(videoId)
+  } = useSharedPlayerState(videoId) // TODO: partyId from path instead
   const youTubeIframeAPIReady = useYouTubeIframeAPIReady()
   const [playerState, setPlayerState] = useState<number>(-2)
 

@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import React, { FC, useCallback, useRef } from 'react'
 import Router from 'next/router'
+import { useAuthUser } from '../components/providers/FirebaseAuthProvider'
 import firebase from 'firebase/app'
 
 function getVideoId (urlOrId: string): string | void {
@@ -33,9 +34,13 @@ type UseCreatePartyReturnType = {
 }
 
 function useCreateParty (): UseCreatePartyReturnType {
+  const user = useAuthUser()
   return {
     createParty: useCallback(async (videoId: string) => {
-      const partyUserUid = 'C8ARfua0LbM87XEbNskfjr8XVUD3' // TODO: Get from firebase session auth provider instead.
+      const partyUserUid = user ? user.uid : null
+      if (!partyUserUid) {
+        alert('Pending authorization... Wait a few seconds then try again.')
+      }
       let partyId: void | string
 
       for (let i = 0; i < UNIQ_RETRIES; i ++) {
@@ -61,7 +66,7 @@ function useCreateParty (): UseCreatePartyReturnType {
         firebase.database().ref(`party/${partyUserUid}/${partyId}/seek`).set(0)
       ])
       return partyId
-    }, []),
+    }, [user]),
   }
 }
 
@@ -96,7 +101,7 @@ const Home: FC<Props> = () => {
               const partyId = await createParty(videoId)
               Router.push(`/watch/${partyId}?hasControl=true`) // TODO: Use resulting user.uid from parties/:id in firebase to determine if user has control or not.
             } else {
-              alert('Oops! Try entering a valid YouTube URL or Video ID this time.')
+              alert('Enter a valid YouTube URL or YouTube Video ID then try again.')
             }
           }}>
             <input className="block w-full my-4 p-4 bg-white text-black" placeholder="Paste YouTube link here" defaultValue="" ref={(c: HTMLInputElement) => inputRef.current = c} />

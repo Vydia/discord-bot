@@ -13,6 +13,20 @@ function getVideoId (urlOrId: string): string | void {
 
   if (idMatch) return idMatch[0]
 }
+const ID_SIZE = 4
+const UNIQ_RETRIES = 100
+const NO_UNIQ_MESSAGE = `Tried ${UNIQ_RETRIES} times to generate a unique party ID but failed. Too many users right now.`
+const UNAMBIGUOUS_CHARS = 'ABCDEFGHJKMNPQRTUVWXYZ2346789'.split('')
+const UNAMBIGUOUS_CHARS_LENGTH = UNAMBIGUOUS_CHARS.length
+
+function generatePartyId (): string {
+  let id = ''
+  for (let i = 0; i < ID_SIZE; i ++) {
+    // TODO: secure-random
+    id += UNAMBIGUOUS_CHARS[Math.floor(Math.random() * UNAMBIGUOUS_CHARS_LENGTH)]
+  }
+  return id
+}
 
 type UseCreatePartyReturnType = {
   createParty: (videoId: string) => Promise<string>,
@@ -21,8 +35,25 @@ type UseCreatePartyReturnType = {
 function useCreateParty (): UseCreatePartyReturnType {
   return {
     createParty: useCallback(async (videoId: string) => {
-      const partyId = 'ABCD' // TODO: Get random, but nonconflicting id here instead.
       const partyUserUid = 'C8ARfua0LbM87XEbNskfjr8XVUD3' // TODO: Get from firebase session auth provider instead.
+      let partyId: void | string
+
+      for (let i = 0; i < UNIQ_RETRIES; i ++) {
+        const randomPartyId = generatePartyId()
+        // console.log(`Trying random Party ID: ${randomPartyId} (${i}/${UNIQ_RETRIES})`)
+        const partyIdAlreadyExists = (await firebase.database().ref(`parties/${randomPartyId}`).get()).exists()
+        // console.log('partyIdAlreadyExists', partyIdAlreadyExists)
+        if (!partyIdAlreadyExists) {
+          partyId = randomPartyId
+          break
+        }
+      }
+
+      if (!partyId) {
+        alert(NO_UNIQ_MESSAGE)
+        throw new Error(NO_UNIQ_MESSAGE)
+      }
+
       await firebase.database().ref(`parties/${partyId}`).set(partyUserUid)
       await Promise.all([
         firebase.database().ref(`party/${partyUserUid}/${partyId}/video`).set(videoId),

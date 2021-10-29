@@ -20,6 +20,9 @@ yarn dev
 
 ## TODO:
 
+ - Display party id onscreen
+ - Join by party id / update homescreen
+
 When a new Party is created:
  - Instead of using yt video id for the key/id, use some uuid or some firebase id. As a user I don't want my Parties to conflict with other users.
  - Host should have write scope over their Parties. Everyone else has read only. As a streamer I don't want stream viewers to mess with my viewing experience by making firebase writes to my Party info.

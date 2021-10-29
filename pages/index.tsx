@@ -99,7 +99,7 @@ const Home: FC<Props> = () => {
 
             if (videoId) {
               const partyId = await createParty(videoId)
-              Router.push(`/watch/${partyId}?hasControl=true`) // TODO: Use resulting user.uid from parties/:id in firebase to determine if user has control or not.
+              Router.push(`/watch/${partyId}`)
             } else {
               alert('Enter a valid YouTube URL or YouTube Video ID then try again.')
             }

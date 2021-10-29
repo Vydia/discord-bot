@@ -1,9 +1,9 @@
 import { FC, useCallback, useEffect, useRef, useState, useMemo } from 'react'
 import firebase from 'firebase/app'
 import { useObjectVal } from 'react-firebase-hooks/database'
-import { useRouter } from 'next/router'
 import { useToasts } from 'react-toast-notifications'
 import useInterval from '../hooks/useInterval'
+import { useAuthUser } from '../providers/FirebaseAuthProvider'
 
 type Props = {
   partyId: string
@@ -37,6 +37,7 @@ const useYouTubeIframeAPIReady = (): boolean => {
 }
 
 function useSharedPlayerState (partyId: string): {
+  hasControl: boolean,
   isPlaying: void | boolean,
   isPlayingRef: { current: void | boolean },
   seekRef: { current: void | number },
@@ -45,6 +46,7 @@ function useSharedPlayerState (partyId: string): {
   setIsPlaying: (isPlaying: boolean) => void,
   videoId: void | string,
 } {
+  const user = useAuthUser()
   const [partyUserUid] = useObjectVal(firebase.database().ref(`parties/${partyId}`))
   const [videoId] = useObjectVal<void | string>(firebase.database().ref(`party/${partyUserUid}/${partyId}/video`))
   const [isPlaying] = useObjectVal<void | boolean>(firebase.database().ref(`party/${partyUserUid}/${partyId}/playing`))
@@ -60,7 +62,10 @@ function useSharedPlayerState (partyId: string): {
     seekRef.current = Number(seek)
   }, [seek])
 
+  const hasControl = !!(user && user.uid === partyUserUid)
+
   return {
+    hasControl,
     isPlaying,
     isPlayingRef,
     seek,
@@ -72,11 +77,10 @@ function useSharedPlayerState (partyId: string): {
 }
 
 const YoutubeVideoPlayer: FC<Props> = ({ partyId }) => {
-  const router = useRouter()
-  const { hasControl } = router.query
   const { addToast } = useToasts()
   const {
     videoId,
+    hasControl,
     isPlaying,
     isPlayingRef,
     seek,
@@ -84,6 +88,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ partyId }) => {
     setSeek,
     setIsPlaying,
   } = useSharedPlayerState(partyId)
+
   const youTubeIframeAPIReady = useYouTubeIframeAPIReady()
   const [playerState, setPlayerState] = useState<number>(-2)
 

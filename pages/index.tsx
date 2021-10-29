@@ -1,8 +1,7 @@
 import Head from 'next/head'
-import React, { FC, useCallback, useEffect, useRef } from 'react'
+import React, { FC, useCallback, useRef } from 'react'
 import Router from 'next/router'
-import { app } from '../lib/firebase'
-import useIsMounted from '../components/hooks/useIsMounted'
+import firebase from 'firebase/app'
 
 function getVideoId (urlOrId: string): string | void {
   const urlMatch = urlOrId.match(/^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/)
@@ -15,36 +14,32 @@ function getVideoId (urlOrId: string): string | void {
   if (idMatch) return idMatch[0]
 }
 
+type UseCreatePartyReturnType = {
+  createParty: (videoId: string) => Promise<string>,
+}
+
+function useCreateParty (): UseCreatePartyReturnType {
+  return {
+    createParty: useCallback(async (videoId: string) => {
+      const partyId = 'ABCD' // TODO: Get random, but nonconflicting id here instead.
+      const partyUserUid = 'C8ARfua0LbM87XEbNskfjr8XVUD3' // TODO: Get from firebase session auth provider instead.
+      await firebase.database().ref(`parties/${partyId}`).set(partyUserUid)
+      await Promise.all([
+        firebase.database().ref(`party/${partyUserUid}/${partyId}/video`).set(videoId),
+        firebase.database().ref(`party/${partyUserUid}/${partyId}/playing`).set(false),
+        firebase.database().ref(`party/${partyUserUid}/${partyId}/seek`).set(0)
+      ])
+      return partyId
+    }, []),
+  }
+}
+
 type Props = {
 }
 
 const Home: FC<Props> = () => {
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const isMounted = useIsMounted()
-
-  const didSignInRef = useRef<boolean>(false)
-  const onAuthStateChanged = useCallback((user) => {
-    if (user) {
-      // User is signed in, see docs for a list of available properties
-      // https://firebase.google.com/docs/reference/js/firebase.User
-      console.log('User is signed in. User:', user)
-    } else {
-      console.log('User is signed out. User:', user)
-    }
-  }, [])
-
-  useEffect(() => {
-    let unsubscribe
-
-    if (isMounted && !didSignInRef.current) {
-      didSignInRef.current = true
-      const auth = app.auth()
-      unsubscribe = auth.onAuthStateChanged(onAuthStateChanged)
-      auth.signInAnonymously()
-    }
-
-    return unsubscribe
-  }, [onAuthStateChanged, isMounted])
+  const { createParty } = useCreateParty()
 
   return (
     <div>
@@ -59,7 +54,7 @@ const Home: FC<Props> = () => {
       <main className="relative flex flex-col items-center justify-center min-h-screen bg-stars bg-black text-white">
         <h1 className="text-xl p-4">Enter a YouTube link to start or join a Watch Party!</h1>
         <div className="max-w-xl w-screen">
-          <form onSubmit={(event) => {
+          <form onSubmit={async (event) => {
             event.preventDefault()
             const urlOrId = inputRef.current && inputRef.current.value
             if (!urlOrId) return
@@ -67,7 +62,8 @@ const Home: FC<Props> = () => {
             const videoId = getVideoId(urlOrId)
 
             if (videoId) {
-              Router.push(`/watch/${videoId}?hasControl=true`)
+              const partyId = await createParty(videoId)
+              Router.push(`/watch/${partyId}?hasControl=true`) // TODO: Use resulting user.uid from parties/:id in firebase to determine if user has control or not.
             } else {
               alert('Oops! Try entering a valid YouTube URL or Video ID this time.')
             }

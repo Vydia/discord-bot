@@ -34,15 +34,26 @@ After party has expired:
 
 New schema:
 
- - `[A-Z0-9]{4}` indicates the party's 4-character id code.
+Dynamic values:
 
-```
-party/[A-Z0-9]{4}/video: string containing youtube video id
-party/[A-Z0-9]{4}/playing: boolean whether party video is playing or not
-party/[A-Z0-9]{4}/seek: number indicating current playback position of the video
+ - `party.id` indicates the party's 4-character id code with format: `[A-Z0-9]{4}`
+ - `user.uid` indicates the firebase auth user's primary id.
+
+Party "index" schema:
+
+ - `parties/{party.id}`: returns user.uid - string containing the owner user uid
+
+Knowing party.id and user.uid is enough to get the complete path to party player info: `party/{user.uid}/{party.id}/*`
+
+This is for firebase authentication rules
+
+Party player info schema:
+
+ - `party/{user.uid}/{party.id}/video`: string containing youtube video id
+ - `party/{user.uid}/{party.id}/playing`: boolean whether party video is playing or not
+ - `party/{user.uid}/{party.id}/seek`: number indicating current playback position of the video
 
 <!-- TODO: How to track auth / owner? signInAnonymously? https://firebase.google.com/docs/auth/web/anonymous-auth -->
 <!-- https://firebase.google.com/docs/rules/basics#mixed_public_and_private_access -->
 
 <!-- TODO: Track some expiration time or created time so we can clean up old parties? -->
-```

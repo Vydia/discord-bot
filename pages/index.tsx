@@ -89,7 +89,7 @@ const Home: FC<Props> = () => {
       </Head>
 
       <main className="relative flex flex-col items-center justify-center min-h-screen bg-stars bg-gray-300 text-white">
-        <section className="px-16 py-8 bg-black rounded mb-8">
+        <section className="px-24 py-12 bg-gray-900 rounded mb-8">
           <h1 className="text-xl p-4">Have a Watch Party code? Enter it here:</h1>
           <div className="max-w-xl w-screen">
             <form onSubmit={async (event) => {
@@ -103,18 +103,18 @@ const Home: FC<Props> = () => {
                 alert('That code is invalid or expired. Try again!')
               }
             }}>
-              <div className="flex flex-row justify-center gap-x-2 px-4 mb-4">
+              <label className="flex flex-row justify-start gap-x-2 px-4 mb-4">
                 <div>
                   <input className="p-4 bg-white text-black" placeholder="e.g. XZ4F" defaultValue="" ref={(c: HTMLInputElement) => joinInputRef.current = c} />
                 </div>
                 <div>
                   <button className="p-4 bg-gray-600">Join Party</button>
                 </div>
-              </div>
+              </label>
             </form>
           </div>
         </section>
-        <section className="p-4 bg-gray-900 rounded">
+        <section className="px-16 py-8 bg-gray-800 rounded">
           <h1 className="text-xl p-4">Or, start a new Watch Party by pasting a YouTube link:</h1>
           <div className="max-w-xl w-screen">
             <form onSubmit={async (event) => {
@@ -129,14 +129,14 @@ const Home: FC<Props> = () => {
                 alert('Enter a valid YouTube URL or YouTube Video ID then try again.')
               }
             }}>
-              <div className="flex flex-row justify-center gap-x-2 px-4 mb-4">
+              <label className="flex flex-row justify-start gap-x-2 px-4 mb-4">
                 <div>
                   <input className="p-4 bg-white text-black" placeholder="e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ" defaultValue="" ref={(c: HTMLInputElement) => newInputRef.current = c} />
                 </div>
                 <div>
                   <button className="p-4 bg-gray-600">Create Party</button>
                 </div>
-              </div>
+              </label>
             </form>
           </div>
         </section>

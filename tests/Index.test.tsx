@@ -8,7 +8,7 @@ import Router from 'next/router'
 const mockedRouterPush = Router.push as jest.Mock<any>
 
 describe('Index', () => {
-  test('when given a valid YouTube Video URL it navigates to the /watch/XXX path for a valid YouTube Video ID', async () => {
+  test('when a youtube link is entered and Create Party button clicked the user is redirected to the new watch party page', async () => {
     let path = ''
 
     mockedRouterPush.mockImplementation((newPath: string) => {
@@ -17,15 +17,16 @@ describe('Index', () => {
 
     render(<Index />)
 
-    screen.getByText('Enter a YouTube link to start or join a Watch Party!')
+    screen.getByText('Have a Watch Party code? Enter it here:')
+    screen.getByText('Or, start a new Watch Party by pasting a YouTube link:')
 
-    userEvent.type(screen.getByRole('textbox'), 'https://www.youtube.com/watch?v=dQw4w9WgXcQ?hasContropl=true')
-    userEvent.click(screen.getByRole('button'))
+    userEvent.type(screen.getByRole('textbox', { name: 'Create Party' }), 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+    userEvent.click(screen.getByRole('button', { name: 'Create Party' }))
 
-    expect(path).toBe('/watch/dQw4w9WgXcQ?hasControl=true')
+    expect(path).toBe('/watch/WHATEVER')
   })
 
-  test('when given a valid YouTube Video ID it navigates to the /watch/XXX path for a valid YouTube Video ID', async () => {
+  test('when given an invalid YouTube Video URL and Create Party button clicked it shows a browser alert', async () => {
     let path = ''
 
     mockedRouterPush.mockImplementation((newPath: string) => {
@@ -34,36 +35,23 @@ describe('Index', () => {
 
     render(<Index />)
 
-    screen.getByText('Enter a YouTube link to start or join a Watch Party!')
+    screen.getByText('Have a Watch Party code? Enter it here:')
+    screen.getByText('Or, start a new Watch Party by pasting a YouTube link:')
 
-    userEvent.type(screen.getByRole('textbox'), 'dQw4w9WgXcQ')
-    userEvent.click(screen.getByRole('button'))
-
-    expect(path).toBe('/watch/dQw4w9WgXcQ?hasControl=true')
-  })
-
-  test('when given an invalid YouTube Video URL it shows a browser alert', async () => {
-    let path = ''
-
-    mockedRouterPush.mockImplementation((newPath: string) => {
-      path = newPath
-    })
-
-    render(<Index />)
-
-    screen.getByText('Enter a YouTube link to start or join a Watch Party!')
-
-    userEvent.type(screen.getByRole('textbox'), 'https://www.youtube.com/notvalid')
+    userEvent.type(screen.getByRole('textbox', { name: 'Create Party' }), 'https://www.youtube.com/notvalid')
     jest.spyOn(window, 'alert').mockImplementation(() => {})
-    userEvent.click(screen.getByRole('button'))
+    userEvent.click(screen.getByRole('button', { name: 'Create Party' }))
 
     expect(path).toBe('')
-    expect(window.alert).toBeCalledWith('Oops! Try entering a valid YouTube URL or Video ID this time.')
+    expect(window.alert).toBeCalledWith('Enter a valid YouTube URL or YouTube Video ID then try again.')
 
-    userEvent.type(screen.getByRole('textbox'), 'dQw4w9WgXcQ1') // Invalid because all YouTube Video IDs have 11 characters.
+    userEvent.type(screen.getByRole('textbox', { name: 'Create Party' }), 'dQw4w9WgXcQ1') // Invalid because all YouTube Video IDs have 11 characters.
     jest.spyOn(window, 'alert').mockImplementation(() => {})
-    userEvent.click(screen.getByRole('button'))
+    userEvent.click(screen.getByRole('button', { name: 'Create Party' }))
 
     expect(path).toBe('')
   })
+
+  // TODO: Test joining valid existing party
+  // TODO: Test joining invalid/nonexisting party
 })

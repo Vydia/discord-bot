@@ -1,21 +1,22 @@
-import React, { createContext, Children, useContext, useEffect, useRef, useState } from 'react'
-import { app } from '../../../lib/firebase'
+import React, { createContext, Children, FC, useContext, useEffect, useRef, useState } from 'react'
+import { app, UserType } from '../../../lib/firebase'
 import useIsMounted from '../../hooks/useIsMounted'
 
-type UserType = {
-  uid: string,
-}
-const AuthContext = createContext<void | UserType>(null)
+const AuthContext = createContext<void | UserType>(undefined)
 
 export const useAuthUser = () => {
   return useContext(AuthContext)
 }
 
-const FirebaseAuthProvider = ({ children }) => {
+type Props = {
+  children: JSX.Element,
+}
+
+const FirebaseAuthProvider: FC<Props> = ({ children }) => {
   const isMounted = useIsMounted()
 
   const didSignInRef = useRef<boolean>(false)
-  const [user, setUser] = useState<void | UserType>(null)
+  const [user, setUser] = useState<void | UserType>(undefined)
 
   useEffect(() => {
     let unsubscribe
@@ -23,7 +24,7 @@ const FirebaseAuthProvider = ({ children }) => {
     if (isMounted && !didSignInRef.current) {
       didSignInRef.current = true
       const auth = app.auth()
-      unsubscribe = auth.onAuthStateChanged((newUser: void | UserType) => {
+      unsubscribe = auth.onAuthStateChanged((newUser) => {
         if (newUser) {
           // User is signed in, see docs for a list of available properties
           // https://firebase.google.com/docs/reference/js/firebase.User
@@ -31,7 +32,7 @@ const FirebaseAuthProvider = ({ children }) => {
           setUser(newUser)
         } else {
           // console.log('User is signed out. User:', newUser)
-          setUser(null)
+          setUser(undefined)
         }
       })
       auth.signInAnonymously()

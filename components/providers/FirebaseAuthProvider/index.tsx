@@ -1,8 +1,8 @@
 import React, { createContext, Children, FC, useContext, useEffect, useRef, useState } from 'react'
-import { app, UserType } from '../../../lib/firebase'
+import { app, User } from '../../../lib/firebase'
 import useIsMounted from '../../hooks/useIsMounted'
 
-const AuthContext = createContext<void | UserType>(undefined)
+const AuthContext = createContext<void | User>(undefined)
 
 export const useAuthUser = () => {
   return useContext(AuthContext)
@@ -16,7 +16,7 @@ const FirebaseAuthProvider: FC<Props> = ({ children }) => {
   const isMounted = useIsMounted()
 
   const didSignInRef = useRef<boolean>(false)
-  const [user, setUser] = useState<void | UserType>(undefined)
+  const [user, setUser] = useState<void | User>(undefined)
 
   useEffect(() => {
     let unsubscribe

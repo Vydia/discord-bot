@@ -4,11 +4,10 @@ export default firebase
 import 'firebase/database'
 import { config } from '../firebaseConfig'
 
-export type UserType = {
-  uid: string,
-}
+export type User = firebaseApp.User
+export type App = firebaseApp.app.App
 
-export let app: firebaseApp.app.App
+export let app: App
 
 if (!firebaseApp.apps.length) {
   app = firebaseApp.initializeApp(config)

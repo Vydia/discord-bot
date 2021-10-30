@@ -2,7 +2,7 @@ import Head from 'next/head'
 import React, { FC, useCallback, useRef } from 'react'
 import Router from 'next/router'
 import { useAuthUser } from '../components/providers/FirebaseAuthProvider'
-import firebase from 'firebase/app'
+import { app } from '../lib/firebase'
 
 function getVideoId (urlOrId: string): string | void {
   const urlMatch = urlOrId.match(/^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/)
@@ -46,7 +46,7 @@ function useCreateParty (): UseCreatePartyReturnType {
       for (let i = 0; i < UNIQ_RETRIES; i ++) {
         const randomPartyId = generatePartyId()
         // console.log(`Trying random Party ID: ${randomPartyId} (${i}/${UNIQ_RETRIES})`)
-        const partyIdAlreadyExists = (await firebase.database().ref(`parties/${randomPartyId}`).get()).exists()
+        const partyIdAlreadyExists = (await app.database().ref(`parties/${randomPartyId}`).get()).exists()
         // console.log('partyIdAlreadyExists', partyIdAlreadyExists)
         if (!partyIdAlreadyExists) {
           partyId = randomPartyId
@@ -59,11 +59,11 @@ function useCreateParty (): UseCreatePartyReturnType {
         throw new Error(NO_UNIQ_MESSAGE)
       }
 
-      await firebase.database().ref(`parties/${partyId}`).set(partyUserUid)
+      await app.database().ref(`parties/${partyId}`).set(partyUserUid)
       await Promise.all([
-        firebase.database().ref(`party/${partyUserUid}/${partyId}/video`).set(videoId),
-        firebase.database().ref(`party/${partyUserUid}/${partyId}/playing`).set(false),
-        firebase.database().ref(`party/${partyUserUid}/${partyId}/seek`).set(0)
+        app.database().ref(`party/${partyUserUid}/${partyId}/video`).set(videoId),
+        app.database().ref(`party/${partyUserUid}/${partyId}/playing`).set(false),
+        app.database().ref(`party/${partyUserUid}/${partyId}/seek`).set(0)
       ])
       return partyId
     }, [user]),
@@ -95,7 +95,7 @@ const Home: FC<Props> = () => {
             <form onSubmit={async (event) => {
               event.preventDefault()
               const partyId = joinInputRef.current && joinInputRef.current.value && joinInputRef.current.value.toUpperCase()
-              const partyExists = !!partyId && (await firebase.database().ref(`parties/${partyId}`).get()).exists()
+              const partyExists = !!partyId && (await app.database().ref(`parties/${partyId}`).get()).exists()
 
               if (partyExists) {
                 Router.push(`/watch/${partyId}`)

@@ -7,6 +7,26 @@ import Router from 'next/router'
 
 const mockedRouterPush = Router.push as jest.Mock<any>
 
+jest.mock('firebase/app', () => {
+  const data = { name: 'unnamed' }
+  const exists = true
+  const snapshot = {
+    val: jest.fn(() => data),
+    exists: jest.fn(() => exists)
+  }
+
+  return {
+    apps: [],
+    initializeApp: jest.fn().mockReturnValue({
+      database: jest.fn().mockReturnValue({
+        ref: jest.fn().mockReturnThis(),
+        once: jest.fn(() => Promise.resolve(snapshot)),
+        get: jest.fn(() => Promise.resolve(snapshot)),
+      })
+    })
+  }
+})
+
 describe('Index', () => {
   test('when a youtube link is entered and Create Party button clicked the user is redirected to the new watch party page', async () => {
     let path = ''

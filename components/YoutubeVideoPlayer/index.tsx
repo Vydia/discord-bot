@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect, useRef, useState, useMemo } from 'react'
-import firebase from 'firebase/app'
+import { app } from '../../lib/firebase'
 import { useObjectVal } from 'react-firebase-hooks/database'
 import { useToasts } from 'react-toast-notifications'
 import useInterval from '../hooks/useInterval'
@@ -47,10 +47,10 @@ function useSharedPlayerState (partyId: string): {
   videoId: void | string,
 } {
   const user = useAuthUser()
-  const [partyUserUid] = useObjectVal(firebase.database().ref(`parties/${partyId}`))
-  const [videoId] = useObjectVal<void | string>(firebase.database().ref(`party/${partyUserUid}/${partyId}/video`))
-  const [isPlaying] = useObjectVal<void | boolean>(firebase.database().ref(`party/${partyUserUid}/${partyId}/playing`))
-  const [seek] = useObjectVal<void | number>(firebase.database().ref(`party/${partyUserUid}/${partyId}/seek`))
+  const [partyUserUid] = useObjectVal(app.database().ref(`parties/${partyId}`))
+  const [videoId] = useObjectVal<void | string>(app.database().ref(`party/${partyUserUid}/${partyId}/video`))
+  const [isPlaying] = useObjectVal<void | boolean>(app.database().ref(`party/${partyUserUid}/${partyId}/playing`))
+  const [seek] = useObjectVal<void | number>(app.database().ref(`party/${partyUserUid}/${partyId}/seek`))
   const isPlayingRef = useRef<void | boolean>(isPlaying)
   const seekRef = useRef<void | number>(seek)
 
@@ -70,8 +70,8 @@ function useSharedPlayerState (partyId: string): {
     isPlayingRef,
     seek,
     seekRef,
-    setSeek: useCallback((seek: number) => { firebase.database().ref(`party/${partyUserUid}/${partyId}/seek`).set(seek) }, [partyUserUid, partyId]),
-    setIsPlaying: useCallback((isPlaying: boolean) => { firebase.database().ref(`party/${partyUserUid}/${partyId}/playing`).set(isPlaying) }, [partyUserUid, partyId]),
+    setSeek: useCallback((seek: number) => { app.database().ref(`party/${partyUserUid}/${partyId}/seek`).set(seek) }, [partyUserUid, partyId]),
+    setIsPlaying: useCallback((isPlaying: boolean) => { app.database().ref(`party/${partyUserUid}/${partyId}/playing`).set(isPlaying) }, [partyUserUid, partyId]),
     videoId,
   }
 }

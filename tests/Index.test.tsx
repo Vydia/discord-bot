@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import Index from '../pages/index'
 import '@testing-library/jest-dom/extend-expect'
@@ -43,7 +43,7 @@ describe('Index', () => {
     userEvent.type(screen.getByRole('textbox', { name: 'Create Party' }), 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
     userEvent.click(screen.getByRole('button', { name: 'Create Party' }))
 
-    expect(path).toBe('/watch/WHATEVER')
+    await waitFor(() => expect(path).toBe('/watch/WHATEVER'))
   })
 
   test('when given an invalid YouTube Video URL and Create Party button clicked it shows a browser alert', async () => {
@@ -69,7 +69,7 @@ describe('Index', () => {
     jest.spyOn(window, 'alert').mockImplementation(() => {})
     userEvent.click(screen.getByRole('button', { name: 'Create Party' }))
 
-    expect(path).toBe('')
+    await waitFor(() => expect(path).toBe(''))
   })
 
   // TODO: Test joining valid existing party

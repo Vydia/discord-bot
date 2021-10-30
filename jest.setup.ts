@@ -1,6 +1,8 @@
 import '@testing-library/jest-dom/extend-expect'
 import '@testing-library/jest-dom'
 
+global.window.alert = () => {}
+
 jest.mock('next/router', () => ({
   __esModule: true,
   useRouter: jest.fn(),

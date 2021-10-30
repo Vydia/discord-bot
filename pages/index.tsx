@@ -74,7 +74,8 @@ type Props = {
 }
 
 const Home: FC<Props> = () => {
-  const inputRef = useRef<HTMLInputElement | null>(null)
+  const newInputRef = useRef<HTMLInputElement | null>(null)
+  const joinInputRef = useRef<HTMLInputElement | null>(null)
   const { createParty } = useCreateParty()
 
   return (
@@ -87,27 +88,58 @@ const Home: FC<Props> = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
 
-      <main className="relative flex flex-col items-center justify-center min-h-screen bg-stars bg-black text-white">
-        <h1 className="text-xl p-4">Enter a YouTube link to start or join a Watch Party!</h1>
-        <div className="max-w-xl w-screen">
-          <form onSubmit={async (event) => {
-            event.preventDefault()
-            const urlOrId = inputRef.current && inputRef.current.value
-            if (!urlOrId) return
+      <main className="relative flex flex-col items-center justify-center min-h-screen bg-stars bg-gray-300 text-white">
+        <section className="px-16 py-8 bg-black rounded mb-8">
+          <h1 className="text-xl p-4">Have a Watch Party code? Enter it here:</h1>
+          <div className="max-w-xl w-screen">
+            <form onSubmit={async (event) => {
+              event.preventDefault()
+              const partyId = joinInputRef.current && joinInputRef.current.value && joinInputRef.current.value.toUpperCase()
+              const partyExists = !!partyId && (await firebase.database().ref(`parties/${partyId}`).get()).exists()
 
-            const videoId = getVideoId(urlOrId)
+              if (partyExists) {
+                Router.push(`/watch/${partyId}`)
+              } else {
+                alert('That code is invalid or expired. Try again!')
+              }
+            }}>
+              <div className="flex flex-row justify-center gap-x-2 px-4 mb-4">
+                <div>
+                  <input className="p-4 bg-white text-black" placeholder="e.g. XZ4F" defaultValue="" ref={(c: HTMLInputElement) => joinInputRef.current = c} />
+                </div>
+                <div>
+                  <button className="p-4 bg-gray-600">Join Party</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
+        <section className="p-4 bg-gray-900 rounded">
+          <h1 className="text-xl p-4">Or, start a new Watch Party by pasting a YouTube link:</h1>
+          <div className="max-w-xl w-screen">
+            <form onSubmit={async (event) => {
+              event.preventDefault()
+              const urlOrId = newInputRef.current && newInputRef.current.value
+              const videoId = urlOrId && getVideoId(urlOrId)
 
-            if (videoId) {
-              const partyId = await createParty(videoId)
-              Router.push(`/watch/${partyId}`)
-            } else {
-              alert('Enter a valid YouTube URL or YouTube Video ID then try again.')
-            }
-          }}>
-            <input className="block w-full my-4 p-4 bg-white text-black" placeholder="Paste YouTube link here" defaultValue="" ref={(c: HTMLInputElement) => inputRef.current = c} />
-            <button className="block w-full p-4">Go</button>
-          </form>
-        </div>
+              if (videoId) {
+                const partyId = await createParty(videoId)
+                Router.push(`/watch/${partyId}`)
+              } else {
+                alert('Enter a valid YouTube URL or YouTube Video ID then try again.')
+              }
+            }}>
+              <div className="flex flex-row justify-center gap-x-2 px-4 mb-4">
+                <div>
+                  <input className="p-4 bg-white text-black" placeholder="e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ" defaultValue="" ref={(c: HTMLInputElement) => newInputRef.current = c} />
+                </div>
+                <div>
+                  <button className="p-4 bg-gray-600">Create Party</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </section>
       </main>
     </div>
   )

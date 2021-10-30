@@ -199,15 +199,15 @@ const YoutubeVideoPlayer: FC<Props> = ({ partyId }) => {
   return <>
     <div className="flex items-center">
       { hasControl ? <>
-        <h3>You are host</h3>
+        <h3 className="p-4">You are host of party <strong>{partyId}</strong></h3>
         <button
           onClick={handleCopyLink}
           className="m-2 flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
         >
-          Click to Copy Share Link
+          Copy Share Link
         </button>
       </> : <div>
-        <h3>{'Someone else is host.'}</h3>
+        <h3 className="p-4">Someone else is host of party <strong>{partyId}</strong></h3>
       </div> }
     </div>
     <div id='youtube-video' style={PLAYER_STYLE} />

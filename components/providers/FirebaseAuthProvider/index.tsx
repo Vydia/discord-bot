@@ -42,7 +42,8 @@ const FirebaseAuthProvider: FC<Props> = ({ children }) => {
   }, [isMounted])
 
   return (<AuthContext.Provider value={user}>
-    { Children.only(children) }
+    { /* Don't render children until we have an authorized user. Otherwise, queries are attempted before allowed, causing the video to never load */ }
+    { user ? Children.only(children) : null }
   </AuthContext.Provider>)
 }
 export default FirebaseAuthProvider

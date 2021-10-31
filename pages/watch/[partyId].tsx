@@ -3,7 +3,7 @@ import React, { FC } from 'react'
 import YouTubeVideoPlayer from '../../components/YoutubeVideoPlayer'
 
 const Watch: FC = () => {
-  const { query,  } = useRouter()
+  const { query } = useRouter()
   if (!query?.partyId) return <div />
 
   return <main className="relative flex flex-col items-center justify-center min-h-screen bg-stars bg-black text-white">

@@ -79,9 +79,9 @@ const Home: FC<Props> = () => {
       </Head>
 
       <main className="relative flex flex-col items-center justify-center min-h-screen bg-stars bg-gray-300 text-white">
-        <section className="px-24 py-12 bg-gray-900 rounded mb-8">
-          <h1 className="text-xl p-4">Have a Watch Party code? Enter it here:</h1>
-          <div className="max-w-xl w-screen">
+        <section className="max-w-full w-full sm:w-auto px-4 md:px-24 py-2 md:py-12 bg-gray-900 rounded mb-8">
+          <h1 className="max-w-xl text-xl p-4">Have a Watch Party code? Enter it here:</h1>
+          <div className="max-w-xl">
             <form onSubmit={async (event) => {
               event.preventDefault()
               const partyId = joinInputRef.current && joinInputRef.current.value && joinInputRef.current.value.toUpperCase()
@@ -93,7 +93,7 @@ const Home: FC<Props> = () => {
                 alert('That code is invalid or expired. Try again!')
               }
             }}>
-              <label className="flex flex-row justify-start gap-x-2 px-4 mb-4">
+              <label className="flex flex-row max-w-full justify-start gap-x-2 px-4 mb-4">
                 <div>
                   <input className="p-4 bg-white text-black" placeholder="e.g. XZ4F" defaultValue="" ref={(c: HTMLInputElement) => joinInputRef.current = c} />
                 </div>
@@ -104,9 +104,9 @@ const Home: FC<Props> = () => {
             </form>
           </div>
         </section>
-        <section className="px-16 py-8 bg-gray-800 rounded">
-          <h1 className="text-xl p-4">Or, start a new Watch Party by pasting a YouTube link:</h1>
-          <div className="max-w-xl w-screen">
+        <section className="max-w-full w-full sm:w-auto px-4 md:px-24 py-2 md:py-12 bg-gray-800 rounded mb-8">
+          <h1 className="max-w-xl text-xl p-4">Or, start a new Watch Party by pasting a YouTube link:</h1>
+          <div className="max-w-xl">
             <form onSubmit={async (event) => {
               event.preventDefault()
               const urlOrId = newInputRef.current && newInputRef.current.value

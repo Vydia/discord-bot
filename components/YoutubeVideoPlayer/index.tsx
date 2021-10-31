@@ -13,7 +13,6 @@ const height = 390
 const width = 640
 const ROUGH_ATTENDEE_SEEK_DELAY_MS = 500
 const ROUGH_PLAYER_LOAD_DELAY_MS = 1000
-const PLAYER_STYLE = { height: `${height}px`, width: `${width}px` }
 
 const useYouTubeIframeAPIReady = (): boolean => {
   const [isReady, setIsReady] = useState<boolean>(false)
@@ -210,12 +209,39 @@ const YoutubeVideoPlayer: FC<Props> = ({ partyId }) => {
         <h3 className="p-4">Someone else is host of party <strong>{partyId}</strong></h3>
       </div> }
     </div>
-    <div id='youtube-video' style={PLAYER_STYLE} />
+    { /* https://stackoverflow.com/a/49887085/2696867 */ }
+    <style dangerouslySetInnerHTML={{__html: `
+      .video-container {
+        position: relative;
+        overflow: hidden;
+        height: 0;
+        padding-bottom: 56.25%; /* creates a 16:9 aspect ratio */
+      }
+
+      .video-container iframe,
+      .video-container embed {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+      }
+
+      .video-wrap {
+        width: 100%;
+      }
+    `}} />
+    <div className='video-wrap'>
+      <div className='video-container'>
+        <div id='youtube-video' />
+      </div>
+    </div>
 
     {
-      hasControl ? <div>
+      hasControl ? <div className="p-4">
         <p>As host, when you play/pause the video or seek to a new timestamp, all attendees watching also do the same.</p>
-      </div> : <div>
+      </div> : <div className="p-4">
         { !youTubeIframeAPIReady
           ? 'Loading...'
           : playerState === window.YT.PlayerState.PLAYING

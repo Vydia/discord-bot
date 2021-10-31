@@ -10,9 +10,7 @@ import Router from 'next/router'
 const mockedRouterPush = Router.push as jest.Mock<any>
 
 // Override these in a specific test
-let mockAuthUser: any = {
-  uid: '123456789'
-}
+let mockAuthUser: any
 let mockDatabase: any
 
 jest.mock('firebase/app', () => {
@@ -39,20 +37,21 @@ jest.mock('firebase/app', () => {
   }
 })
 
-let mockPartyId = 'XQC3'
+let mockPartyId: string
 jest.mock('../lib/generatePartyId', () => ({
   generatePartyId: () => mockPartyId,
 }))
 
 describe('Index', () => {
-  test('when a youtube link is entered and Create Party button clicked the user is redirected to the new watch party page', async () => {
-    mockDatabase = {
-      // Setting all these to undefined is redundant, but here to show intent that there is no data there yet.
-      [`parties/${mockPartyId}`]: undefined,
-      [`party/${mockAuthUser.uid}/${mockPartyId}/video`]: undefined,
-      [`party/${mockAuthUser.uid}/${mockPartyId}/playing`]: undefined,
-      [`party/${mockAuthUser.uid}/${mockPartyId}/seek`]: undefined,
+  beforeEach(() => {
+    mockAuthUser = {
+      uid: '123456789'
     }
+    mockDatabase = undefined
+    mockPartyId = 'XQC3'
+  })
+
+  test('when a youtube link is entered and Create Party button clicked the user is redirected to the new watch party page', async () => {
     let path = ''
 
     mockedRouterPush.mockImplementation((newPath: string) => {
@@ -66,6 +65,8 @@ describe('Index', () => {
 
     userEvent.type(screen.getByRole('textbox', { name: 'Create Party' }), 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
     userEvent.click(screen.getByRole('button', { name: 'Create Party' }))
+
+    // TODO: Assert that `set` is called with the auth user id in the ref key.
 
     await waitFor(() => expect(path).toBe(`/watch/${mockPartyId}`))
   })
@@ -83,6 +84,7 @@ describe('Index', () => {
     screen.getByText('Or, start a new Watch Party by pasting a YouTube link:')
 
     userEvent.type(screen.getByRole('textbox', { name: 'Create Party' }), 'https://www.youtube.com/notvalid')
+    jest.restoreAllMocks()
     jest.spyOn(window, 'alert').mockImplementation(() => {})
     userEvent.click(screen.getByRole('button', { name: 'Create Party' }))
 
@@ -90,12 +92,50 @@ describe('Index', () => {
     expect(window.alert).toBeCalledWith('Enter a valid YouTube URL or YouTube Video ID then try again.')
 
     userEvent.type(screen.getByRole('textbox', { name: 'Create Party' }), 'dQw4w9WgXcQ1') // Invalid because all YouTube Video IDs have 11 characters.
-    jest.spyOn(window, 'alert').mockImplementation(() => {})
     userEvent.click(screen.getByRole('button', { name: 'Create Party' }))
 
-    await waitFor(() => expect(path).toBe(''))
+    expect(path).toBe('')
   })
 
-  // TODO: Test joining valid existing party
-  // TODO: Test joining invalid/nonexisting party
+  test('when a valid party code is entered and Join Party button clicked the user is redirected to the existing watch party page', async () => {
+    const otherUid = '5551212'
+    mockDatabase = {
+      [`parties/${mockPartyId}`]: otherUid,
+    }
+    let path = ''
+
+    mockedRouterPush.mockImplementation((newPath: string) => {
+      path = newPath
+    })
+
+    render(<Index />)
+
+    screen.getByText('Have a Watch Party code? Enter it here:')
+    screen.getByText('Or, start a new Watch Party by pasting a YouTube link:')
+
+    userEvent.type(screen.getByRole('textbox', { name: 'Join Party' }), mockPartyId)
+    userEvent.click(screen.getByRole('button', { name: 'Join Party' }))
+
+    await waitFor(() => expect(path).toBe(`/watch/${mockPartyId}`))
+  })
+
+  test('when an invalid party code is entered and Join Party button clicked the user sees an alert and stays on the same page', async () => {
+    let path = ''
+
+    mockedRouterPush.mockImplementation((newPath: string) => {
+      path = newPath
+    })
+
+    render(<Index />)
+
+    screen.getByText('Have a Watch Party code? Enter it here:')
+    screen.getByText('Or, start a new Watch Party by pasting a YouTube link:')
+
+    userEvent.type(screen.getByRole('textbox', { name: 'Join Party' }), mockPartyId)
+    jest.restoreAllMocks()
+    jest.spyOn(window, 'alert').mockImplementation(() => {})
+    userEvent.click(screen.getByRole('button', { name: 'Join Party' }))
+    await waitFor(() => expect(window.alert).toBeCalledWith('That code is invalid or expired. Try again!'))
+    expect(path).toBe('')
+  })
 })

@@ -39,10 +39,13 @@ function useSharedPlayerState (partyId: string): {
   hasControl: boolean,
   isPlaying: void | boolean,
   isPlayingRef: { current: void | boolean },
-  seekRef: { current: void | number },
   seek: void | number,
-  setSeek: (seek: number) => void,
+  seekRef: { current: void | number },
   setIsPlaying: (isPlaying: boolean) => void,
+  setSeek: (seek: number) => void,
+  setSpeed: (speed: number) => void,
+  speed: void | number,
+  speedRef: { current: void | number },
   videoId: void | string,
 } {
   const user = useAuthUser()
@@ -50,8 +53,10 @@ function useSharedPlayerState (partyId: string): {
   const [videoId] = useObjectVal<void | string>(app.database().ref(`party/${partyUserUid}/${partyId}/video`))
   const [isPlaying] = useObjectVal<void | boolean>(app.database().ref(`party/${partyUserUid}/${partyId}/playing`))
   const [seek] = useObjectVal<void | number>(app.database().ref(`party/${partyUserUid}/${partyId}/seek`))
+  const [speed] = useObjectVal<void | number>(app.database().ref(`party/${partyUserUid}/${partyId}/speed`))
   const isPlayingRef = useRef<void | boolean>(isPlaying)
   const seekRef = useRef<void | number>(seek)
+  const speedRef = useRef<void | number>(speed)
 
   useEffect(() => {
     isPlayingRef.current = isPlaying
@@ -61,6 +66,10 @@ function useSharedPlayerState (partyId: string): {
     seekRef.current = Number(seek)
   }, [seek])
 
+  useEffect(() => {
+    speedRef.current = Number(speed) || 1
+  }, [speed])
+
   const hasControl = !!(user && user.uid === partyUserUid)
 
   return {
@@ -69,8 +78,11 @@ function useSharedPlayerState (partyId: string): {
     isPlayingRef,
     seek,
     seekRef,
-    setSeek: useCallback((seek: number) => { app.database().ref(`party/${partyUserUid}/${partyId}/seek`).set(seek) }, [partyUserUid, partyId]),
     setIsPlaying: useCallback((isPlaying: boolean) => { app.database().ref(`party/${partyUserUid}/${partyId}/playing`).set(isPlaying) }, [partyUserUid, partyId]),
+    setSeek: useCallback((seek: number) => { app.database().ref(`party/${partyUserUid}/${partyId}/seek`).set(seek) }, [partyUserUid, partyId]),
+    setSpeed: useCallback((speed: number) => { app.database().ref(`party/${partyUserUid}/${partyId}/speed`).set(speed) }, [partyUserUid, partyId]),
+    speed,
+    speedRef,
     videoId,
   }
 }
@@ -78,14 +90,17 @@ function useSharedPlayerState (partyId: string): {
 const YoutubeVideoPlayer: FC<Props> = ({ partyId }) => {
   const { addToast } = useToasts()
   const {
-    videoId,
     hasControl,
     isPlaying,
     isPlayingRef,
     seek,
     seekRef,
-    setSeek,
     setIsPlaying,
+    setSeek,
+    setSpeed,
+    speed,
+    speedRef,
+    videoId,
   } = useSharedPlayerState(partyId)
 
   const youTubeIframeAPIReady = useYouTubeIframeAPIReady()
@@ -99,6 +114,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ partyId }) => {
       onReady: ({ target }) => {
         setTimeout(() => {
           if (!hasControl) {
+            target.setPlaybackRate(speedRef.current || 1)
             if (isPlayingRef.current) {
               target.playVideo()
             } else {
@@ -133,8 +149,15 @@ const YoutubeVideoPlayer: FC<Props> = ({ partyId }) => {
           break
         }
       },
+      onPlaybackRateChange: ({ data, target }) => {
+        if (hasControl) {
+          setSpeed(data)
+        } else {
+          target.setPlaybackRate(speedRef.current || 1)
+        }
+      }
     }
-  }), [hasControl, setSeek, setIsPlaying, isPlayingRef, seekRef])
+  }), [hasControl, setSeek, setIsPlaying, isPlayingRef, seekRef, speedRef, setSpeed])
 
   const [player, setPlayer] = useState(null)
 
@@ -173,6 +196,11 @@ const YoutubeVideoPlayer: FC<Props> = ({ partyId }) => {
   useEffect(() => {
     if (seek) handleSeekTo(seek + (ROUGH_ATTENDEE_SEEK_DELAY_MS / 1000))
   }, [handleSeekTo, seek])
+
+  useEffect(() => {
+    if (hasControl) return
+    if (player?.getPlaybackRate && Number(speed) !== Number(player.getPlaybackRate())) player.setPlaybackRate(speed || 1)
+  }, [player, speed, hasControl])
 
   useInterval(
     () => {

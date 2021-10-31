@@ -3,6 +3,7 @@ import React, { FC, useCallback, useRef } from 'react'
 import Router from 'next/router'
 import { useAuthUser } from '../components/providers/FirebaseAuthProvider'
 import { app } from '../lib/firebase'
+import { generatePartyId } from '../lib/generatePartyId'
 
 function getVideoId (urlOrId: string): string | void {
   const urlMatch = urlOrId.match(/^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/)
@@ -14,20 +15,9 @@ function getVideoId (urlOrId: string): string | void {
 
   if (idMatch) return idMatch[0]
 }
-const ID_SIZE = 4
+
 const UNIQ_RETRIES = 100
 const NO_UNIQ_MESSAGE = `Tried ${UNIQ_RETRIES} times to generate a unique party ID but failed. Too many users right now.`
-const UNAMBIGUOUS_CHARS = 'ABCDEFGHJKMNPQRTUVWXYZ2346789'.split('')
-const UNAMBIGUOUS_CHARS_LENGTH = UNAMBIGUOUS_CHARS.length
-
-function generatePartyId (): string {
-  let id = ''
-  for (let i = 0; i < ID_SIZE; i ++) {
-    // TODO: secure-random
-    id += UNAMBIGUOUS_CHARS[Math.floor(Math.random() * UNAMBIGUOUS_CHARS_LENGTH)]
-  }
-  return id
-}
 
 type UseCreatePartyReturnType = {
   createParty: (videoId: string) => Promise<string>,

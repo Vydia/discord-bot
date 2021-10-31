@@ -2,7 +2,7 @@ import React, { createContext, Children, FC, useContext, useEffect, useRef, useS
 import { app, User } from '../../../lib/firebase'
 import useIsMounted from '../../hooks/useIsMounted'
 
-const AuthContext = createContext<void | User>(undefined)
+export const AuthContext = createContext<void | User>(undefined)
 
 export const useAuthUser = () => {
   return useContext(AuthContext)

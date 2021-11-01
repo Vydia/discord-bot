@@ -1,19 +1,18 @@
 import { FC, useCallback, useEffect, useRef, useState, useMemo } from 'react'
-import firebase from 'firebase/app'
+import { app } from '../../lib/firebase'
 import { useObjectVal } from 'react-firebase-hooks/database'
-import { useRouter } from 'next/router'
 import { useToasts } from 'react-toast-notifications'
 import useInterval from '../hooks/useInterval'
+import { useAuthUser } from '../providers/FirebaseAuthProvider'
 
 type Props = {
-  videoId: string
+  partyId: string
 }
 
 const height = 390
 const width = 640
 const ROUGH_ATTENDEE_SEEK_DELAY_MS = 500
 const ROUGH_PLAYER_LOAD_DELAY_MS = 1000
-const PLAYER_STYLE = { height: `${height}px`, width: `${width}px` }
 
 const useYouTubeIframeAPIReady = (): boolean => {
   const [isReady, setIsReady] = useState<boolean>(false)
@@ -36,53 +35,78 @@ const useYouTubeIframeAPIReady = (): boolean => {
   return isReady
 }
 
-function useSharedPlayerState (videoId: string): {
-  isPlaying: boolean,
-  isPlayingRef: { current: boolean },
-  seekRef: { current: number },
-  seek: number,
-  setSeek: (seek: number) => void,
+function useSharedPlayerState (partyId: string): {
+  hasControl: boolean,
+  isPlaying: void | boolean,
+  isPlayingRef: { current: void | boolean },
+  seek: void | number,
+  seekRef: { current: void | number },
   setIsPlaying: (isPlaying: boolean) => void,
+  setSeek: (seek: number) => void,
+  setSpeed: (speed: number) => void,
+  speed: void | number,
+  speedRef: { current: void | number },
+  videoId: void | string,
 } {
-  const [isPlaying] = useObjectVal(firebase.database().ref(`player/${videoId}/playing`))
-  const [seek] = useObjectVal(firebase.database().ref(`player/${videoId}/seek`))
-  const isPlayingRef = useRef<boolean>(!!isPlaying)
-  const seekRef = useRef<number>(Number(seek))
+  const user = useAuthUser()
+  const [partyUserUid] = useObjectVal(app.database().ref(`parties/${partyId}`))
+  const [videoId] = useObjectVal<void | string>(app.database().ref(`party/${partyUserUid}/${partyId}/video`))
+  const [isPlaying] = useObjectVal<void | boolean>(app.database().ref(`party/${partyUserUid}/${partyId}/playing`))
+  const [seek] = useObjectVal<void | number>(app.database().ref(`party/${partyUserUid}/${partyId}/seek`))
+  const [speed] = useObjectVal<void | number>(app.database().ref(`party/${partyUserUid}/${partyId}/speed`))
+  const isPlayingRef = useRef<void | boolean>(isPlaying)
+  const seekRef = useRef<void | number>(seek)
+  const speedRef = useRef<void | number>(speed)
 
   useEffect(() => {
-    isPlayingRef.current = !!isPlaying
+    isPlayingRef.current = isPlaying
   }, [isPlaying])
 
   useEffect(() => {
     seekRef.current = Number(seek)
   }, [seek])
 
-  return {
-    isPlaying: !!isPlaying,
-    isPlayingRef,
-    seek: Number(seek),
-    seekRef,
-    setSeek: useCallback((seek: number) => { firebase.database().ref(`player/${videoId}/seek`).set(seek) }, [videoId]),
-    setIsPlaying: useCallback((isPlaying: boolean) => { firebase.database().ref(`player/${videoId}/playing`).set(isPlaying) }, [videoId]),
-  }
-}
+  useEffect(() => {
+    speedRef.current = Number(speed) || 1
+  }, [speed])
 
-const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
-  const router = useRouter()
-  const { hasControl } = router.query
-  const { addToast } = useToasts()
-  const {
+  const hasControl = !!(user && user.uid === partyUserUid)
+
+  return {
+    hasControl,
     isPlaying,
     isPlayingRef,
     seek,
     seekRef,
-    setSeek,
+    setIsPlaying: useCallback((isPlaying: boolean) => { app.database().ref(`party/${partyUserUid}/${partyId}/playing`).set(isPlaying) }, [partyUserUid, partyId]),
+    setSeek: useCallback((seek: number) => { app.database().ref(`party/${partyUserUid}/${partyId}/seek`).set(seek) }, [partyUserUid, partyId]),
+    setSpeed: useCallback((speed: number) => { app.database().ref(`party/${partyUserUid}/${partyId}/speed`).set(speed) }, [partyUserUid, partyId]),
+    speed,
+    speedRef,
+    videoId,
+  }
+}
+
+const YoutubeVideoPlayer: FC<Props> = ({ partyId }) => {
+  const { addToast } = useToasts()
+  const {
+    hasControl,
+    isPlaying,
+    isPlayingRef,
+    seek,
+    seekRef,
     setIsPlaying,
-  } = useSharedPlayerState(videoId)
+    setSeek,
+    setSpeed,
+    speed,
+    speedRef,
+    videoId,
+  } = useSharedPlayerState(partyId)
+
   const youTubeIframeAPIReady = useYouTubeIframeAPIReady()
   const [playerState, setPlayerState] = useState<number>(-2)
 
-  const internalPlayer = useCallback(() => new window.YT.Player('youtube-video', {
+  const internalPlayer = useCallback((videoId: string) => new window.YT.Player('youtube-video', {
     height: `${height}`,
     width: `${width}`,
     videoId,
@@ -90,13 +114,14 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
       onReady: ({ target }) => {
         setTimeout(() => {
           if (!hasControl) {
+            target.setPlaybackRate(speedRef.current || 1)
             if (isPlayingRef.current) {
               target.playVideo()
             } else {
               target.pauseVideo()
             }
           }
-          target.seekTo(seekRef.current + (ROUGH_ATTENDEE_SEEK_DELAY_MS / 1000), true)
+          if (seekRef.current) target.seekTo(seekRef.current + (ROUGH_ATTENDEE_SEEK_DELAY_MS / 1000), true)
         }, ROUGH_PLAYER_LOAD_DELAY_MS)
       },
       onStateChange: ({ data, target }) => {
@@ -124,8 +149,15 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
           break
         }
       },
+      onPlaybackRateChange: ({ data, target }) => {
+        if (hasControl) {
+          setSpeed(data)
+        } else {
+          target.setPlaybackRate(speedRef.current || 1)
+        }
+      }
     }
-  }), [videoId, hasControl, setSeek, setIsPlaying, isPlayingRef, seekRef])
+  }), [hasControl, setSeek, setIsPlaying, isPlayingRef, seekRef, speedRef, setSpeed])
 
   const [player, setPlayer] = useState(null)
 
@@ -153,17 +185,22 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
 
   useEffect(() => {
     if(!youTubeIframeAPIReady) return
-    if(!player) setPlayer(internalPlayer())
+    if(!player && videoId) setPlayer(internalPlayer(videoId))
 
     if (hasControl) return
 
     isPlaying ? handlePlay() : handlePause()
-  }, [youTubeIframeAPIReady, player, handlePause, handlePlay, internalPlayer, isPlaying, hasControl])
+  }, [youTubeIframeAPIReady, player, handlePause, handlePlay, internalPlayer, isPlaying, hasControl, videoId])
 
   // Auto-seek. Helps new attendees join and catch up from where the video is, without the host having to stop and start the video and update seek that way.
   useEffect(() => {
-    handleSeekTo(seek + (ROUGH_ATTENDEE_SEEK_DELAY_MS / 1000))
+    if (seek) handleSeekTo(seek + (ROUGH_ATTENDEE_SEEK_DELAY_MS / 1000))
   }, [handleSeekTo, seek])
+
+  useEffect(() => {
+    if (hasControl) return
+    if (player?.getPlaybackRate && Number(speed) !== Number(player.getPlaybackRate())) player.setPlaybackRate(speed || 1)
+  }, [player, speed, hasControl])
 
   useInterval(
     () => {
@@ -189,23 +226,50 @@ const YoutubeVideoPlayer: FC<Props> = ({ videoId }) => {
   return <>
     <div className="flex items-center">
       { hasControl ? <>
-        <h3>You are host</h3>
+        <h3 className="p-4">You are host of party <strong>{partyId}</strong></h3>
         <button
           onClick={handleCopyLink}
           className="m-2 flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
         >
-          Click to Copy Share Link
+          Copy Share Link
         </button>
       </> : <div>
-        <h3>{'Someone else is host.'}</h3>
+        <h3 className="p-4">Someone else is host of party <strong>{partyId}</strong></h3>
       </div> }
     </div>
-    <div id='youtube-video' style={PLAYER_STYLE} />
+    { /* https://stackoverflow.com/a/49887085/2696867 */ }
+    <style dangerouslySetInnerHTML={{__html: `
+      .video-container {
+        position: relative;
+        overflow: hidden;
+        height: 0;
+        padding-bottom: 56.25%; /* creates a 16:9 aspect ratio */
+      }
+
+      .video-container iframe,
+      .video-container embed {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+      }
+
+      .video-wrap {
+        width: 100%;
+      }
+    `}} />
+    <div className='video-wrap'>
+      <div className='video-container'>
+        <div id='youtube-video' />
+      </div>
+    </div>
 
     {
-      hasControl ? <div>
+      hasControl ? <div className="p-4">
         <p>As host, when you play/pause the video or seek to a new timestamp, all attendees watching also do the same.</p>
-      </div> : <div>
+      </div> : <div className="p-4">
         { !youTubeIframeAPIReady
           ? 'Loading...'
           : playerState === window.YT.PlayerState.PLAYING

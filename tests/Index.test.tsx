@@ -39,6 +39,7 @@ jest.mock('firebase/app', () => {
 
 let mockPartyId: string
 jest.mock('../lib/generatePartyId', () => ({
+  ...jest.requireActual('../lib/generatePartyId') as any,
   generatePartyId: () => mockPartyId,
 }))
 

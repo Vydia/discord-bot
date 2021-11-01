@@ -10,3 +10,10 @@ export function generatePartyId (): string {
   }
   return id
 }
+
+export function coercePartyId (maybePartyId: string | void): string | void {
+  maybePartyId = maybePartyId && maybePartyId.toUpperCase()
+  const idMatch = maybePartyId && maybePartyId.match(new RegExp(`^[0-9A-Z]{${ID_SIZE}}$`))
+
+  if (idMatch) return idMatch[0]
+}

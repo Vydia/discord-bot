@@ -3,7 +3,7 @@ import React, { FC, useCallback, useRef } from 'react'
 import Router from 'next/router'
 import { useAuthUser } from '../components/providers/FirebaseAuthProvider'
 import { app } from '../lib/firebase'
-import { generatePartyId } from '../lib/generatePartyId'
+import { coercePartyId, generatePartyId } from '../lib/generatePartyId'
 
 function getVideoId (urlOrId: string): string | void {
   const urlMatch = urlOrId.match(/^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/)
@@ -64,8 +64,8 @@ type Props = {
 }
 
 const Home: FC<Props> = () => {
-  const newInputRef = useRef<HTMLInputElement | null>(null)
-  const joinInputRef = useRef<HTMLInputElement | null>(null)
+  const newInputRef = useRef<HTMLInputElement | void>(undefined)
+  const joinInputRef = useRef<HTMLInputElement | void>(undefined)
   const { createParty } = useCreateParty()
 
   return (
@@ -84,13 +84,15 @@ const Home: FC<Props> = () => {
           <div className="max-w-xl">
             <form onSubmit={async (event) => {
               event.preventDefault()
-              const partyId = joinInputRef.current && joinInputRef.current.value && joinInputRef.current.value.toUpperCase()
-              const partyExists = !!partyId && (await app.database().ref(`parties/${partyId}`).get()).exists()
-
-              if (partyExists) {
-                Router.push(`/watch/${partyId}`)
+              const partyId = coercePartyId(joinInputRef.current && joinInputRef.current.value)
+              if (partyId) {
+                if ((await app.database().ref(`parties/${partyId}`).get()).exists()) {
+                  Router.push(`/watch/${partyId}`)
+                } else {
+                  alert('That code is invalid or expired. Try again!')
+                }
               } else {
-                alert('That code is invalid or expired. Try again!')
+                alert('Oops! Party codes are four (4) characters long and consist of letters and numbers only. For example: XZ4F')
               }
             }}>
               <label className="flex flex-row max-w-full justify-start gap-x-2 px-4 mb-4">

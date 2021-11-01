@@ -64,8 +64,8 @@ type Props = {
 }
 
 const Home: FC<Props> = () => {
-  const newInputRef = useRef<HTMLInputElement | null>(null)
-  const joinInputRef = useRef<HTMLInputElement | null>(null)
+  const newInputRef = useRef<HTMLInputElement | void>(undefined)
+  const joinInputRef = useRef<HTMLInputElement | void>(undefined)
   const { createParty } = useCreateParty()
 
   return (

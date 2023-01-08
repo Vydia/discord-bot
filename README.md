@@ -18,6 +18,8 @@ yarn
 yarn dev
 ```
 
+Visit http://localhost:3000 in your browser.
+
 ## TODO:
 
 During an active Party:

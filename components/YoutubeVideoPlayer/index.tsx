@@ -36,6 +36,7 @@ const useYouTubeIframeAPIReady = (): boolean => {
 }
 
 function useSharedPlayerState (partyId: string): {
+  currentParticipantsCount: number,
   hasControl: boolean,
   isPlaying: void | boolean,
   isPlayingRef: { current: void | boolean },
@@ -73,6 +74,7 @@ function useSharedPlayerState (partyId: string): {
   const hasControl = !!(user && user.uid === partyUserUid)
 
   return {
+    currentParticipantsCount: 1, // TODO
     hasControl,
     isPlaying,
     isPlayingRef,
@@ -90,6 +92,7 @@ function useSharedPlayerState (partyId: string): {
 const YoutubeVideoPlayer: FC<Props> = ({ partyId }) => {
   const { addToast } = useToasts()
   const {
+    currentParticipantsCount,
     hasControl,
     isPlaying,
     isPlayingRef,
@@ -271,12 +274,16 @@ const YoutubeVideoPlayer: FC<Props> = ({ partyId }) => {
         <p>As host, when you play/pause the video or seek to a new timestamp, all attendees watching also do the same.</p>
       </div> : <div className="p-4">
         { !youTubeIframeAPIReady
-          ? 'Loading...'
+          ? `Loading... ${currentParticipantsCount} attendees are watching.}`
           : playerState === window.YT.PlayerState.PLAYING
-            ? <p>{'The host is playing the video for all attendees.'}</p>
+            ? <p>{`The host is playing the video for all ${currentParticipantsCount} attendees.`}</p>
             : playerState === window.YT.PlayerState.PAUSED
-              ? <p>{'The host has paused the video for all attendees.'}</p>
-              : <p>{`Click on the video until it loads (${ isPlaying ? 'Host is playing video' : 'Host has paused video' }).`}</p>}
+              ? <p>{`The host has paused the video for all ${currentParticipantsCount} attendees.`}</p>
+              : <p>{
+                `Click on the video until it loads (${ isPlaying
+                  ? `Host is playing the video for ${currentParticipantsCount} attendees`
+                  : `Host has paused the video for ${currentParticipantsCount} attendees` }).`
+              }</p>}
       </div>
     }
   </>

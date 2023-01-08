@@ -271,7 +271,7 @@ const YoutubeVideoPlayer: FC<Props> = ({ partyId }) => {
 
     {
       hasControl ? <div className="p-4">
-        <p>As host, when you play/pause the video or seek to a new timestamp, all attendees watching also do the same.</p>
+        <p>{`As host, when you play/pause the video or seek to a new timestamp, all ${currentParticipantsCount} attendees watching also do the same.`}</p>
       </div> : <div className="p-4">
         { !youTubeIframeAPIReady
           ? `Loading... ${currentParticipantsCount} attendees are watching.}`

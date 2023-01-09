@@ -51,8 +51,8 @@ function useSharedPlayerState (partyId: string): {
   videoId: void | string,
 } {
   const user = useAuthUser()
-  const [partyUserUid] = useObjectVal(app.database().ref(`parties/${partyId}`))
-  const currentParticipantsCount = useVisitorCount({ partyId, partyUserUid })
+  const [partyUserUid] = useObjectVal<void | string>(app.database().ref(`parties/${partyId}`))
+  const currentParticipantsCount = useVisitorCount({ partyId, partyUserUid: partyUserUid || '' })
   const [videoId] = useObjectVal<void | string>(app.database().ref(`party/${partyUserUid}/${partyId}/video`))
   const [isPlaying] = useObjectVal<void | boolean>(app.database().ref(`party/${partyUserUid}/${partyId}/playing`))
   const [seek] = useObjectVal<void | number>(app.database().ref(`party/${partyUserUid}/${partyId}/seek`))

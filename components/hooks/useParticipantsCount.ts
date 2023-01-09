@@ -25,7 +25,7 @@ export default function useParticipantsCount({ partyId, partyUserUid }: { partyI
           }
         })
       })
-    }, 5000)
+    }, 3000)
 
     return () => clearInterval(interval)
   }, [partyId, partyUserUid, user])
@@ -37,7 +37,7 @@ export default function useParticipantsCount({ partyId, partyUserUid }: { partyI
   const now = Date.now()
   const currentUserIds = new Set<string>()
   Object.values(heartbeats).forEach(heartbeat => {
-    if (now - heartbeat.timestamp < 10 * 1000) { // 10 seconds
+    if (now - heartbeat.timestamp < 5 * 1000) { // 5 seconds
       currentUserIds.add(heartbeat.uid)
     }
   })

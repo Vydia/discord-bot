@@ -13,7 +13,7 @@ To use production settings in your local env you can find them in Vydia 1Passwor
 Start
 
 ```
-nvm install 15.6.0
+nvm install
 yarn
 yarn dev
 ```

@@ -4,7 +4,7 @@ import { useObjectVal } from 'react-firebase-hooks/database'
 import { useToasts } from 'react-toast-notifications'
 import useInterval from '../hooks/useInterval'
 import { useAuthUser } from '../providers/FirebaseAuthProvider'
-import useVisitorCount from '../hooks/useVisitorCount'
+import useVisitorCount from '../hooks/useParticipantsCount'
 
 type Props = {
   partyId: string
@@ -51,8 +51,8 @@ function useSharedPlayerState (partyId: string): {
   videoId: void | string,
 } {
   const user = useAuthUser()
-  const currentParticipantsCount = useVisitorCount({ partyId })
   const [partyUserUid] = useObjectVal(app.database().ref(`parties/${partyId}`))
+  const currentParticipantsCount = useVisitorCount({ partyId, partyUserUid })
   const [videoId] = useObjectVal<void | string>(app.database().ref(`party/${partyUserUid}/${partyId}/video`))
   const [isPlaying] = useObjectVal<void | boolean>(app.database().ref(`party/${partyUserUid}/${partyId}/playing`))
   const [seek] = useObjectVal<void | number>(app.database().ref(`party/${partyUserUid}/${partyId}/seek`))
